@@ -70,6 +70,7 @@
   </Choose>
   <ItemGroup>
     <Compile Include="CountableThreadPoolTests.cs" />
+    <Compile Include="Downloader\HttpClientDownloaderTest.cs" />
     <Compile Include="Example\OschinaBlog.cs" />
     <Compile Include="HtmlTest.cs" />
     <Compile Include="Model\ModelPageProcessorTest.cs" />
