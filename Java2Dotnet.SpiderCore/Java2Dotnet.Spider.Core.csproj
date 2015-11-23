@@ -90,6 +90,7 @@
     <Compile Include="Selector\XPathSelector.cs" />
     <Compile Include="Utils\AutomicLong.cs" />
     <Compile Include="Utils\AutomicInteger.cs" />
+    <Compile Include="Utils\NetUtils.cs" />
     <Compile Include="Utils\PriorityBlockingQueue.cs" />
     <Compile Include="Utils\XTokenQueue.cs" />
     <Compile Include="Utils\DateTimeExtensions.cs" />

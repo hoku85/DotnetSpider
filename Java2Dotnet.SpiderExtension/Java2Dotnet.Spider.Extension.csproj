@@ -91,6 +91,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AbastractRedisSpider.cs" />
     <Compile Include="DbSupport\DataProviderManager.cs" />
     <Compile Include="DbSupport\Dapper\Attributes\Deleted.cs" />
     <Compile Include="DbSupport\Dapper\Attributes\KeyProperty.cs" />
@@ -111,6 +112,7 @@
     <Compile Include="DbSupport\IDataProviderManager.cs" />
     <Compile Include="DbSupport\MySqlDataProvider.cs" />
     <Compile Include="DbSupport\SqlServerDataProvider.cs" />
+    <Compile Include="IRedisSpider.cs" />
     <Compile Include="Model\Attribute\Column.cs" />
     <Compile Include="Model\Attribute\ComboExtract.cs" />
     <Compile Include="Model\Attribute\ExtractBy.cs" />

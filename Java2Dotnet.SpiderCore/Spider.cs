@@ -89,6 +89,7 @@ namespace Java2Dotnet.Spider.Core
 		private Regex _subHtmlRegex;
 		private static readonly object ErroLogFileLocker = new object();
 		private static readonly Regex IdentifyRegex = new Regex(@"^[\d\w\s-]+$");
+		private bool isInit;
 
 		/// <summary>
 		/// Create a spider with pageProcessor.
@@ -269,8 +270,14 @@ namespace Java2Dotnet.Spider.Core
 			return this;
 		}
 
-		protected void InitComponent()
+		public void InitComponent()
 		{
+			if (isInit)
+			{
+				Logger.InfoFormat("Component already init.");
+				return;
+			}
+
 			Scheduler.Init(this);
 
 			if (Downloader == null)
@@ -288,6 +295,7 @@ namespace Java2Dotnet.Spider.Core
 			{
 				ThreadPool = new CountableThreadPool(ThreadNum);
 			}
+
 			if (StartRequests != null)
 			{
 				if (StartRequests.Count > 0)
@@ -329,6 +337,8 @@ namespace Java2Dotnet.Spider.Core
 				//¹Ø±Õ°´Å¥½ûÓÃ
 				RemoveMenu(closeMenu, SC_CLOSE, 0x0);
 			}
+
+			isInit = true;
 		}
 
 		private void Console_CancelKeyPress(object sender, ConsoleCancelEventArgs e)
