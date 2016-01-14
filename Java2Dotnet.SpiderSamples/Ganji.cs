@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Text;
 using Java2Dotnet.Spider.Core;
 using Java2Dotnet.Spider.Core.Scheduler;
@@ -7,29 +8,24 @@ using Java2Dotnet.Spider.Extension.DbSupport.Dapper.Attributes;
 using Java2Dotnet.Spider.Extension.Model;
 using Java2Dotnet.Spider.Extension.Model.Attribute;
 using Java2Dotnet.Spider.Extension.Pipeline;
-using Java2Dotnet.Spider.Extension.Scheduler;
 
 namespace Java2Dotnet.Spider.Samples
 {
 	////*[@id="list-job-id"]/div[15]/ul
-	[TargetUrl(Value = new[] { "zpdianhuaxiaoshou/o[0-9]+/" }, SourceRegion = "//*[@id=\"list-job-id\"]/div[15]/ul")]
+	[TargetUrl(new[] { "zpdianhuaxiaoshou/o[0-9]+/" }, "//*[@id=\"list-job-id\"]/div[15]/ul")]
 
 	//////*[@id="list-job-id"]/div[9]/dl[1]
-	[ExtractBy(Value = "//*[@id=\"list-job-id\"]/div[9]/dl", Multi = true)]
-	[Scheme("ganji")]
-	[StoredAs("post")]
+	[ExtractBy(Value = "//*[@id=\"list-job-id\"]/div[9]/dl")]
+	[Scheme("ganji", "post")]
 	public class Ganji : SpiderEntity
 	{
 		public static void RunTask()
 		{
-			OoSpider ooSpider = OoSpider.Create("ganji_posts_" + DateTime.Now.Date.ToString("yyyy-MM-dd"),
-				new Site { SleepTime = 1000, Encoding = Encoding.UTF8 },
-				new PageModelToDbPipeline(), typeof(Ganji));
+			OoSpider ooSpider = OoSpider.Create("ganji_posts_" + DateTime.Now.Date.ToString("yyyy-MM-dd"), new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, new QueueDuplicateRemovedScheduler(), new DatabasePipeline(), typeof(List<Ganji>));
 			ooSpider.SetEmptySleepTime(15000);
 			ooSpider.SetThreadNum(1);
 			ooSpider.ModelPipeline.CachedSize = 2;
-			ooSpider.SetScheduler(new QueueDuplicateRemovedScheduler());
-			ooSpider.AddUrl("http://sh.ganji.com/zpdianhuaxiaoshou/o1/");
+			ooSpider.AddStartUrl("http://sh.ganji.com/zpdianhuaxiaoshou/o1/");
 			ooSpider.Run();
 		}
 
@@ -61,7 +57,7 @@ namespace Java2Dotnet.Spider.Samples
 		[StoredAs("uuid", StoredAs.ValueType.Varchar, false, 20)]
 		public string Uuid => Encrypt.Md5Encrypt(Title + Company);
 
-		[ExtractBy(Value = "url", Type = ExtractBy.ExtracType.Enviroment)]
+		[ExtractBy(Value = "url", Type = ExtractType.Enviroment)]
 		[StoredAs("url", StoredAs.ValueType.Text)]
 		public string Url { get; set; }
 

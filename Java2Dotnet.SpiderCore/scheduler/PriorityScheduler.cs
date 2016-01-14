@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 using System.Runtime.Remoting.Contexts;
 using Java2Dotnet.Spider.Core.Utils;
 
@@ -32,6 +33,7 @@ namespace Java2Dotnet.Spider.Core.Scheduler
 			}
 		}
 
+		[MethodImpl(MethodImplOptions.Synchronized)]
 		public override Request Poll(ISpider spider)
 		{
 			Request poll = _priorityQueuePlus.Pop();

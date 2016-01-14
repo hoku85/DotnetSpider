@@ -1,5 +1,4 @@
 using System;
-using Java2Dotnet.Spider.Core;
 
 namespace Java2Dotnet.Spider.Extension.Model.Attribute
 {

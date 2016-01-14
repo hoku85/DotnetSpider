@@ -42,11 +42,19 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 		/// <returns></returns>
 		public void Insert(object instance)
 		{
-			var sql = SqlGenerator.GetInsert(false);
-			using (IDbConnection conn = GetConnection())
+			if (instance == null)
 			{
-				conn.Execute(sql, instance, null, 99999, CommandType.Text);
+				return;
 			}
+			var sql = SqlGenerator.GetInsert(false);
+
+			//AtomicRedialExecutor.Execute("db-insert", () =>
+			//{
+				using (IDbConnection conn = GetConnection())
+				{
+					conn.Execute(sql, instance, null, 99999, CommandType.Text);
+				}
+			//});
 		}
 
 		/// <summary>
@@ -56,11 +64,20 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 		/// <returns></returns>
 		public IEnumerable<dynamic> GetWhere(object filters)
 		{
-			var sql = SqlGenerator.GetSelect(filters);
-			using (IDbConnection conn = GetConnection())
+			if (filters == null)
 			{
-				return conn.Query(sql, filters, null, false, 99999, CommandType.Text);
+				return null;
 			}
+
+			var sql = SqlGenerator.GetSelect(filters);
+
+			//return AtomicRedialExecutor.Execute("getwhere-insert", () =>
+			//{
+				using (IDbConnection conn = GetConnection())
+				{
+					return conn.Query(sql, filters, null, false, 99999, CommandType.Text);
+				}
+			//});
 		}
 
 		//public dynamic GetWhere
@@ -72,11 +89,19 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 		/// <returns></returns>
 		public void Update(object instance)
 		{
-			var sql = SqlGenerator.GetUpdate();
-			using (IDbConnection conn = GetConnection())
+			if (instance == null)
 			{
-				conn.Execute(sql, instance, null, 99999, CommandType.Text);
+				return;
 			}
+			var sql = SqlGenerator.GetUpdate();
+
+			//AtomicRedialExecutor.Execute("db-update", () =>
+			//{
+				using (IDbConnection conn = GetConnection())
+				{
+					conn.Execute(sql, instance, null, 99999, CommandType.Text);
+				}
+			//});
 		}
 
 		/// <summary>
@@ -86,10 +111,13 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 		/// <returns></returns>
 		public int Execute(string sql)
 		{
-			using (IDbConnection conn = GetConnection())
-			{
-				return conn.Execute(sql, null, null, 99999, CommandType.Text);
-			}
+			//return AtomicRedialExecutor.Execute("db-execute", () =>
+			//{
+				using (IDbConnection conn = GetConnection())
+				{
+					return conn.Execute(sql, null, null, 99999, CommandType.Text);
+				}
+			//});
 		}
 
 		#endregion
@@ -97,18 +125,24 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 
 		public void CreateTable()
 		{
-			using (IDbConnection conn = GetConnection())
-			{
-				conn.Execute(SqlGenerator.GetCreateTable(), null, null, 99999, CommandType.Text);
-			}
+			//AtomicRedialExecutor.Execute("db-createtable", () =>
+			//{
+				using (IDbConnection conn = GetConnection())
+				{
+					conn.Execute(SqlGenerator.GetCreateTable(), null, null, 99999, CommandType.Text);
+				}
+			//});
 		}
 
 		public void CreateSheme()
 		{
-			using (IDbConnection conn = GetConnection())
-			{
-				conn.Execute(SqlGenerator.GetCreateSheme(), null, null, 99999, CommandType.Text);
-			}
+			//AtomicRedialExecutor.Execute("db-createsheme", () =>
+			//{
+				using (IDbConnection conn = GetConnection())
+				{
+					conn.Execute(SqlGenerator.GetCreateSheme(), null, null, 99999, CommandType.Text);
+				}
+			//});
 		}
 	}
 }

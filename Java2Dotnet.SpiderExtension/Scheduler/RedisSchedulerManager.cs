@@ -1,43 +1,39 @@
 ﻿using System.Collections.Generic;
 using Java2Dotnet.Spider.Core.Utils;
+using Java2Dotnet.Spider.Extension.Utils;
 using Newtonsoft.Json;
-using ServiceStack.Redis;
 
 namespace Java2Dotnet.Spider.Extension.Scheduler
 {
 	public class RedisSchedulerManager : ISchedulerManager
 	{
-		private readonly RedisManagerPool _pool;
-		private readonly string _password;
+		private readonly SafeRedisManagerPool _pool;
 
 		public RedisSchedulerManager(string host, string password)
 		{
-			_pool = new RedisManagerPool(host);
-			_password = password;
+			_pool = new SafeRedisManagerPool(host, password);
 		}
 
 		public IDictionary<string, double> GetTaskList(int startIndex, int count)
 		{
-			using (var redis = _pool.GetClient())
+			using (var redis = _pool.GetSafeGetClient())
 			{
-				redis.Password = _password;
 				return redis.GetRangeWithScoresFromSortedSetDesc(RedisScheduler.TaskList, startIndex, startIndex + count);
 			}
 		}
 
 		public void RemoveTask(string taskIdentify)
 		{
-			using (var redis = _pool.GetClient())
+			using (var redis = _pool.GetSafeGetClient())
 			{
-				redis.Password = _password;
-				string json = redis?.GetValueFromHash(RedisScheduler.TaskStatus, taskIdentify);
-				if (!string.IsNullOrEmpty(json))
+				//string json = redis?.GetValueFromHash(RedisScheduler.TaskStatus, taskIdentify);
+				//if (!string.IsNullOrEmpty(json))
 				{
 					redis.Remove(GetQueueKey(taskIdentify));
 					redis.Remove(GetSetKey(taskIdentify));
 					redis.RemoveEntryFromHash(RedisScheduler.TaskStatus, taskIdentify);
-					redis.RemoveEntryFromHash(RedisScheduler.ItemPrefix + taskIdentify, taskIdentify);
-
+					redis.Remove(RedisScheduler.ItemPrefix + taskIdentify);
+					redis.Remove(taskIdentify);
 					redis.RemoveItemFromSortedSet(RedisScheduler.TaskList, taskIdentify);
 				}
 			}
@@ -55,9 +51,8 @@ namespace Java2Dotnet.Spider.Extension.Scheduler
 
 		public SpiderStatus GetTaskStatus(string taskIdentify)
 		{
-			using (var redis = _pool.GetClient())
+			using (var redis = _pool.GetSafeGetClient())
 			{
-				redis.Password = _password;
 				string json = redis?.GetValueFromHash(RedisScheduler.TaskStatus, taskIdentify);
 				if (!string.IsNullOrEmpty(json))
 				{
@@ -69,9 +64,8 @@ namespace Java2Dotnet.Spider.Extension.Scheduler
 
 		public void ClearDb()
 		{
-			using (var redis = _pool.GetClient())
+			using (var redis = _pool.GetSafeGetClient())
 			{
-				redis.Password = _password;
 				redis.FlushDb();
 			}
 		}

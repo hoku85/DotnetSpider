@@ -5,13 +5,13 @@ using Java2Dotnet.Spider.Core;
 namespace Java2Dotnet.Spider.Extension.Model.Attribute
 {
 	[AttributeUsage(AttributeTargets.Property)]
-	public class Stoper : System.Attribute
+	public class Stopper : System.Attribute
 	{
 		public Operator Op { get; set; }
 
 		public string Value { get; set; }
 
-		public Stoper(Operator op, string value)
+		public Stopper(Operator op, string value)
 		{
 			Op = op;
 			Value = value;

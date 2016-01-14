@@ -11,20 +11,16 @@ using Java2Dotnet.Spider.Extension.Scheduler;
 
 namespace Java2Dotnet.Spider.Samples
 {
-
-	[ExtractBy(Value = "//*[@id=\"tab_top50\"]/div[1]/ul/li", Multi = true, Count = 15)]
-	[Scheme("aiqiyi")]
-	[StoredAs("movies")]
-	public class walter : SpiderEntity
+	[ExtractBy(Value = "//*[@id=\"tab_top50\"]/div[1]/ul/li", Count = 15)]
+	[Scheme("aiqiyi", "movies")]
+	public class Walter : SpiderEntity
 	{
 		public static void RunTask()
 		{
-			OoSpider ooSpider = OoSpider.Create("aiqiyi_movies_" + DateTime.Now.ToLocalTime().ToString(),
-				new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, new PageModelToDbPipeline(), typeof(walter));
+			OoSpider ooSpider = OoSpider.Create("aiqiyi_movies_" + DateTime.Now.ToLocalTime(), new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, new RedisScheduler("localhost", null), new DatabasePipeline(), typeof(List<Walter>));
 			ooSpider.SetEmptySleepTime(15000);
 			ooSpider.SetThreadNum(10);
-			ooSpider.SetScheduler(new RedisScheduler("localhost", null));
-			ooSpider.AddUrl("http://top.iqiyi.com/dianshiju.html#");
+			ooSpider.AddStartUrl("http://top.iqiyi.com/dianshiju.html#");
 			ooSpider.Run();
 		}
 
@@ -40,17 +36,12 @@ namespace Java2Dotnet.Spider.Samples
 		[ExtractBy(Value = "/li/a[1]/@href")]
 		public string Url { get; set; }
 
-		[ExtractBy(Value = "/li/span[1]/a", Multi = true)]
-		public List<string> Label_1 { get; set; }
+		[ExtractBy(Value = "/li/span[1]/a")]
+		public List<string> Label1 { get; set; }
 
 		[StoredAs("tag", StoredAs.ValueType.Varchar, false, 500)]
-		public string Tag
-		{
-			get
-			{
-				return string.Join("|", Label_1);
-			}
-		}
+		public string Tag => string.Join("|", Label1);
+
 		//[StoredAs("label_2", StoredAs.ValueType.Varchar, false, 20)]
 		//[ExtractBy(Value = "/li/span[1]/a[2]")]
 		//public string Label_2 { get; set; }

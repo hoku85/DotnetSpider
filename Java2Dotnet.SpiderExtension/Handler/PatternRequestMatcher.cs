@@ -23,7 +23,7 @@ namespace Java2Dotnet.Spider.Extension.Handler
 
 		public bool Match(Request request)
 		{
-			return _patternCompiled.IsMatch(request.Url);
+			return _patternCompiled.IsMatch(request.Url.ToString());
 		}
 	}
 }

@@ -136,7 +136,7 @@ namespace Java2Dotnet.Spider.Scripts
 
 			foreach (string url in param.Urls)
 			{
-				spider.AddUrl(url);
+				spider.AddStartUrl(url);
 			}
 			spider.Run();
 		}

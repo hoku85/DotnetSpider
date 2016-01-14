@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Java2Dotnet.Spider.Core.Utils;
+using System;
 
 namespace Java2Dotnet.Spider.Core.Processor
 {
@@ -14,21 +14,22 @@ namespace Java2Dotnet.Spider.Core.Processor
 		{
 			Site = new Site();
 			Site.AddStartUrl(startUrl);
-			Site.Domain = UrlUtils.GetDomain(startUrl);
+			Uri url = new Uri(startUrl);
+			Site.Domain = url.Host;
 			//compile "*" expression to regex
 			_urlPattern = "(" + urlPattern.Replace(".", "\\.").Replace("*", "[^\"'#]*") + ")";
 		}
 
 		public void Process(Page page)
 		{
-			IList<string> requests = page.GetHtml().Links().Regex(_urlPattern).GetAll();
+			IList<string> requests = page.HtmlDocument.Links().Regex(_urlPattern).GetAll();
 			//add urls to fetch
 			page.AddTargetRequests(requests);
 			//extract by XPath
-			page.PutField("title", page.GetHtml().XPath("//title"));
-			page.PutField("html", page.GetHtml().ToString());
+			page.AddResultItem("title", page.HtmlDocument.XPath("//title"));
+			page.AddResultItem("html", page.HtmlDocument.ToString());
 			//extract by Readability
-			page.PutField("content", page.GetHtml().SmartContent());
+			page.AddResultItem("content", page.HtmlDocument.SmartContent());
 		}
 
 		/// <summary>

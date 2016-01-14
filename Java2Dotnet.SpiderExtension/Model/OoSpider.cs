@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Java2Dotnet.Spider.Core;
 using Java2Dotnet.Spider.Core.Pipeline;
+using Java2Dotnet.Spider.Core.Scheduler;
 using Java2Dotnet.Spider.Extension.Pipeline;
 using Java2Dotnet.Spider.Extension.Processor;
 
@@ -10,54 +11,97 @@ namespace Java2Dotnet.Spider.Extension.Model
 {
 	/// <summary>
 	/// The spider for page model extractor.
-	/// In webmagic, we call a POJO containing extract result as "page model".
-	/// You can customize a crawler by write a page model with annotations.
-	/// Such as:
-	/// <pre>
-	/// {@literal @}TargetUrl("http://my.oschina.net/flashsword/blog/\\d+")
-	///  public class OschinaBlog{
-	/// 
-	///      {@literal @}ExtractBy("//title")
-	///      private String title;
-	/// 
-	///      {@literal @}ExtractBy(value = "div.BlogContent",type = ExtractBy.Type.Css)
-	///      private String content;
-	/// 
-	///      {@literal @}ExtractBy(value = "//div[@class='BlogTags']/a/text()", multi = true)
-	/// }
-	/// </pre>
-	/// And start the spider by:
-	/// <pre>
-	///   OOSpider.create(Site.me().addStartUrl("http://my.oschina.net/flashsword/blog")
-	///        ,new JsonFilePageModelPipeline(), OschinaBlog.class).run();
-	/// }
-	/// </pre>
 	/// </summary>
 	public class OoSpider : Core.Spider
 	{
-		private readonly ModelPageProcessor _modelPageProcessor;
-		private readonly ModelPipeline _modelPipeline;
-		//private readonly IList<Type> _pageModelTypes = new List<Type>();
+		public ModelPipeline ModelPipeline { get; private set; }
 
-		private OoSpider(string identify, ModelPageProcessor modelPageProcessor)
-			: base(identify, modelPageProcessor)
+		private OoSpider(string identify, ModelPageProcessor modelPageProcessor, IScheduler scheduler)
+			: base(identify, modelPageProcessor, scheduler)
 		{
-			_modelPageProcessor = modelPageProcessor;
+			//_modelPageProcessor = modelPageProcessor;
 		}
 
-		/// <summary>
-		/// Create a spider
-		/// </summary>
-		/// <param name="identify"></param>
-		/// <param name="site"></param>
-		/// <param name="pageModelPipeline"></param>
-		/// <param name="modelTypes"></param>
-		private OoSpider(string identify, Site site, IPageModelPipeline[] pageModelPipeline, params Type[] modelTypes)
-			: this(identify, ModelPageProcessor.Create(site, modelTypes))
+		private OoSpider(string identify, Site site, IScheduler scheduler, IPageModelPipeline[] pageModelPipeline, params Type[] modelTypes)
+			: this(identify, ModelPageProcessor.Create(site, modelTypes), scheduler)
 		{
-			_modelPipeline = new ModelPipeline();
+			Init(pageModelPipeline, modelTypes);
+		}
 
-			AddPipeline(_modelPipeline);
+		private OoSpider(string identify, ModelPageProcessor processor, IScheduler scheduler, IPageModelPipeline[] pageModelPipeline, params Type[] modelTypes)
+			: this(identify, processor, scheduler)
+		{
+			Init(pageModelPipeline, modelTypes);
+		}
+
+		public void SetCustomizeTargetUrls(Func<Page, IList<string>> getCustomizeTargetUrls)
+		{
+			((ModelPageProcessor)PageProcessor).GetCustomizeTargetUrls = getCustomizeTargetUrls;
+		}
+
+		//protected override List<ICollectorPipeline> GetCollectorPipeline(params Type[] types)
+		//{
+		//	return types.Select(type => new PageModelCollectorPipeline(type)).Cast<ICollectorPipeline>().ToList();
+		//}
+
+		public static OoSpider Create(Site site, IPageModelPipeline pageModelPipeline, params Type[] pageModels)
+		{
+			if (pageModelPipeline == null)
+			{
+				throw new SpiderExceptoin("PageModelPipeline can't be null.");
+			}
+			return Create(site.Domain, site, new QueueDuplicateRemovedScheduler(), new[] { pageModelPipeline }, pageModels);
+		}
+
+		public static OoSpider Create(Site site, IScheduler scheduler, IPageModelPipeline pageModelPipeline, params Type[] pageModels)
+		{
+			if (pageModelPipeline == null)
+			{
+				throw new SpiderExceptoin("PageModelPipeline can't be null.");
+			}
+			return Create(site.Domain, site, scheduler, new[] { pageModelPipeline }, pageModels);
+		}
+
+		public static OoSpider Create(string identify, Site site, IScheduler scheduler, IPageModelPipeline pageModelPipeline, params Type[] pageModels)
+		{
+			if (pageModelPipeline == null)
+			{
+				throw new SpiderExceptoin("PageModelPipeline can't be null.");
+			}
+			return Create(identify, site, scheduler, new[] { pageModelPipeline }, pageModels);
+		}
+
+		public static OoSpider Create(string identify, Site site, IScheduler scheduler, IPageModelPipeline[] pageModelPipelines, params Type[] pageModels)
+		{
+			if (pageModelPipelines == null || pageModelPipelines.Length == 0)
+			{
+				throw new SpiderExceptoin("PageModelPipelines can't be null.");
+			}
+			return new OoSpider(identify, site, scheduler, pageModelPipelines, pageModels);
+		}
+
+		public static OoSpider Create<T>(string identify, Site site, IScheduler scheduler, IPageModelPipeline[] pageModelPipeline, params Type[] pageModels) where T : ModelPageProcessor
+		{
+			var processor = ModelPageProcessor.Create<T>(site, pageModels);
+			return new OoSpider(identify, processor, scheduler, pageModelPipeline, pageModels);
+		}
+
+		public OoSpider AddPageModel(IPageModelPipeline pageModelPipeline, params Type[] pageModels)
+		{
+			var processor = ((ModelPageProcessor)PageProcessor);
+			foreach (Type pageModel in pageModels)
+			{
+				processor.AddPageModel(pageModel);
+				ModelPipeline.Put(pageModel, pageModelPipeline);
+			}
+			return this;
+		}
+
+		private void Init(IPageModelPipeline[] pageModelPipeline, Type[] modelTypes)
+		{
+			ModelPipeline = new ModelPipeline();
+
+			AddPipeline(ModelPipeline);
 
 			foreach (Type modelType in modelTypes)
 			{
@@ -65,53 +109,11 @@ namespace Java2Dotnet.Spider.Extension.Model
 				{
 					foreach (var modelPipeline in pageModelPipeline)
 					{
-						_modelPipeline.Put(modelType, modelPipeline);
+						ModelPipeline.Put(modelType, modelPipeline);
 					}
 				}
 				//_pageModelTypes.Add(modelType);
 			}
-		}
-
-		public ModelPipeline ModelPipeline => _modelPipeline;
-
-		protected override List<ICollectorPipeline> GetCollectorPipeline(params Type[] types)
-		{
-			return types.Select(type => new PageModelCollectorPipeline(type)).Cast<ICollectorPipeline>().ToList();
-		}
-
-		public static OoSpider Create(Site site, params Type[] pageModels)
-		{
-			return new OoSpider(null, site, null, pageModels);
-		}
-
-		public static OoSpider Create(Site site, IPageModelPipeline pageModelPipeline, params Type[] pageModels)
-		{
-			return new OoSpider(null, site, new[] { pageModelPipeline }, pageModels);
-		}
-
-		public static OoSpider Create(string identify, Site site, params Type[] pageModels)
-		{
-			return new OoSpider(identify, site, null, pageModels);
-		}
-
-		public static OoSpider Create(string identify, Site site, IPageModelPipeline pageModelPipeline, params Type[] pageModels)
-		{
-			return new OoSpider(identify, site, new[] { pageModelPipeline }, pageModels);
-		}
-
-		public static OoSpider Create(string identify, Site site, IPageModelPipeline[] pageModelPipeline, params Type[] pageModels)
-		{
-			return new OoSpider(identify, site, pageModelPipeline, pageModels);
-		}
-
-		public OoSpider AddPageModel(IPageModelPipeline pageModelPipeline, params Type[] pageModels)
-		{
-			foreach (Type pageModel in pageModels)
-			{
-				_modelPageProcessor.AddPageModel(pageModel);
-				_modelPipeline.Put(pageModel, pageModelPipeline);
-			}
-			return this;
 		}
 	}
 }

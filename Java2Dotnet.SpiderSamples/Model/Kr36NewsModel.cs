@@ -6,11 +6,7 @@ using Java2Dotnet.Spider.Extension.Pipeline;
 
 namespace Java2Dotnet.Spider.Samples.Model
 {
-
-	/**
-	 * @author code4crafter@gmail.com <br>
-	 */
-	[TargetUrl(Value = new[] { "http://www.36kr.com/p/\\d+.html" })]
+	[TargetUrl(new[] { "http://www.36kr.com/p/\\d+.html" })]
 	[HelpUrl(Value = new[] { "http://www.36kr.com/#/page/\\d+" })]
 	public class Kr36NewsModel
 	{
@@ -27,10 +23,10 @@ namespace Java2Dotnet.Spider.Samples.Model
 		{
 			Site site = new Site();
 			site.AddStartUrl("http://www.36kr.com/");
-			Core.Spider thread = OoSpider.Create(site, new PageModelToDbPipeline(), typeof(Kr36NewsModel)).SetThreadNum(20);
-			thread.Start();
+			Core.Spider thread = OoSpider.Create(site, new DatabasePipeline(), typeof(Kr36NewsModel)).SetThreadNum(20);
 			SpiderMonitor spiderMonitor = SpiderMonitor.Instance;
 			spiderMonitor.Register(thread);
+			thread.Run();
 		}
 	}
 }

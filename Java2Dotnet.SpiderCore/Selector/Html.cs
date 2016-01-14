@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using HtmlAgilityPack;
 using Java2Dotnet.Spider.Core.Utils;
-using log4net;
 
 namespace Java2Dotnet.Spider.Core.Selector
 {
@@ -17,17 +16,18 @@ namespace Java2Dotnet.Spider.Core.Selector
 		/// </summary>
 		public HtmlAgilityPack.HtmlNode Document { get; }
 
-		public Html(string text, string url = null)
+		public Html(string text, Uri url)
 		{
 			try
 			{
 				HtmlDocument document = new HtmlDocument();
+				document.OptionAutoCloseOnEnd = true;
 				document.LoadHtml(text);
 				Document = document.DocumentNode;
 
-				if (!string.IsNullOrEmpty(url))
+				if (url != null)
 				{
-					FixAllRelativeHrefs(url);
+					FixAllRelativeHrefs(url.ToString());
 				}
 			}
 			catch (Exception e)
@@ -35,6 +35,10 @@ namespace Java2Dotnet.Spider.Core.Selector
 				Document = null;
 				Logger.Warn("parse document error ", e);
 			}
+		}
+
+		public Html(string text, string url = null) : this(text, string.IsNullOrEmpty(url) ? null : new Uri(url))
+		{
 		}
 
 		public Html(HtmlAgilityPack.HtmlNode document)

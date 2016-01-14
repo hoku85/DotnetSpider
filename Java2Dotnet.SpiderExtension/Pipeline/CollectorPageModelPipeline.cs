@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Java2Dotnet.Spider.Core;
-using Java2Dotnet.Spider.Core.Pipeline;
 
 namespace Java2Dotnet.Spider.Extension.Pipeline
 {
@@ -31,6 +29,11 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 		public Dictionary<Type, List<dynamic>> GetCollected()
 		{
 			return _collector;
+		}
+
+		public void Dispose()
+		{
+			_collector.Clear();
 		}
 	}
 }

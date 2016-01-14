@@ -12,7 +12,10 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 	{
 		public void Process(Dictionary<Type, List<dynamic>> data, ISpider spider)
 		{
-			throw new NotImplementedException();
+		}
+
+		public void Dispose()
+		{
 		}
 	}
 }

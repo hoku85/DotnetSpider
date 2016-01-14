@@ -22,7 +22,7 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 		/// <summary>
 		/// 
 		/// </summary>
-		string TableName { get; }
+		//string TableName { get; }
 
 		/// <summary>
 		/// 

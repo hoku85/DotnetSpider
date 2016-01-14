@@ -1,6 +1,5 @@
 using System;
 using System.Collections;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Java2Dotnet.Spider.Core;
 using Java2Dotnet.Spider.Core.Pipeline;
@@ -12,11 +11,26 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 	/// </summary>
 	public class ModelPipeline : CachedPipeline
 	{
-		private readonly ConcurrentDictionary<Type, IPageModelPipeline> _pageModelPipelines = new ConcurrentDictionary<Type, IPageModelPipeline>();
+		private class PageModelPipelineInfo
+		{
+			public PageModelPipelineInfo(bool isGeneric, IPageModelPipeline pipeline)
+			{
+				IsGeneric = isGeneric;
+				Pipeline = pipeline;
+			}
+
+			public bool IsGeneric { get;  }
+			public IPageModelPipeline Pipeline { get;  }
+		}
+
+		private readonly Dictionary<Type, PageModelPipelineInfo> _pageModelPipelines = new Dictionary<Type, PageModelPipelineInfo>();
 
 		public ModelPipeline Put(Type type, IPageModelPipeline pageModelPipeline)
 		{
-			_pageModelPipelines.TryAdd(type, pageModelPipeline);
+			bool isGeneric = typeof(IEnumerable).IsAssignableFrom(type);
+			var actuallyType = isGeneric ? type.GenericTypeArguments[0] : type;
+			_pageModelPipelines.Add(actuallyType, new PageModelPipelineInfo(isGeneric, pageModelPipeline));
+
 			return this;
 		}
 
@@ -32,10 +46,10 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 				Dictionary<Type, List<dynamic>> resultDictionary = new Dictionary<Type, List<dynamic>>();
 				foreach (var resultItems in resultItemsList)
 				{
-					dynamic data = resultItems.Get(pipelineEntry.Key.FullName);
+					dynamic data = resultItems.GetResultItem(pipelineEntry.Key.FullName);
 					Type type = data.GetType();
 
-					if (typeof(IEnumerable).IsAssignableFrom(type))
+					if (pipelineEntry.Value.IsGeneric)
 					{
 						if (resultDictionary.ContainsKey(type))
 						{
@@ -60,7 +74,7 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 						}
 					}
 				}
-				pipelineEntry.Value.Process(resultDictionary, spider);
+				pipelineEntry.Value.Pipeline.Process(resultDictionary, spider);
 			}
 		}
 	}

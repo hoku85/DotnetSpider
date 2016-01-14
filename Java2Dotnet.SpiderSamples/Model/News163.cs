@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Text.RegularExpressions;
 using Java2Dotnet.Spider.Core;
 using Java2Dotnet.Spider.Core.Pipeline;
 using Java2Dotnet.Spider.Extension;
@@ -11,7 +10,7 @@ using Java2Dotnet.Spider.Extension.Scheduler;
 
 namespace Java2Dotnet.Spider.Samples.Model
 {
-	[TargetUrl(Value = new[] { "http://news.163.com/\\d+/\\d+/\\d+/\\w+*.html" })]
+	[TargetUrl(new[] { "http://news.163.com/\\d+/\\d+/\\d+/\\w+*.html" })]
 	public class News163 : IMultiPageModel
 	{
 		[ExtractByUrl("http://news\\.163\\.com/\\d+/\\d+/\\d+/([^_]*).*\\.html")]
@@ -23,7 +22,7 @@ namespace Java2Dotnet.Spider.Samples.Model
 		////div[@class=\"ep-pages\"]/a[substring(@href,string-length(@href)-5)='.html']
 
 		[Formatter(typeof(RegexFormater), new[] { "http://news\\.163\\.com/\\d+/\\d+/\\d+/\\w+_(\\d+)\\.html", "1" })]
-		[ExtractBy(Value = "//div[@class=\"ep-pages\"]/a/@href", Multi = true, NotNull = false)]
+		[ExtractBy(Value = "//div[@class=\"ep-pages\"]/a/@href", NotNull = false)]
 		public HashSet<string> OtherPage { get; set; }
 
 		[ExtractBy(Value = "//h1[@id=\"h1title\"]/text()")]
@@ -70,10 +69,10 @@ namespace Java2Dotnet.Spider.Samples.Model
 
 		public static void Run()
 		{
-			OoSpider.Create(new Site(), typeof(News163)).AddUrl("http://news.163.com/13/0802/05/958I1E330001124J_2.html")
+			OoSpider.Create(new Site(), new RedisScheduler("localhost", ""), new CollectorPageModelPipeline(), typeof(List<News163>)).AddStartUrl("http://news.163.com/13/0802/05/958I1E330001124J_2.html")
 				.AddPipeline(new MultiPagePipeline())
 				.AddPipeline(new ConsolePipeline())
-				.SetScheduler(new RedisScheduler("localhost", "")).Run();
+				.Run();
 		}
 	}
 }

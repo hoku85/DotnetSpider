@@ -50,8 +50,8 @@
       <HintPath>..\packages\HtmlAgilityPack.CssSelectors.1.0.0\lib\net45\HtmlAgilityPack.CssSelectors.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="log4net, Version=1.2.13.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.3\lib\net40-full\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=1.2.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.5\lib\net45-full\log4net.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="MySql.Data, Version=6.9.8.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
@@ -63,19 +63,19 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="ServiceStack.Common, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FreeStack.Redis.4.3.1\lib\ServiceStack.Common.dll</HintPath>
+      <HintPath>..\packages\FreeStack.Redis.4.3.4\lib\ServiceStack.Common.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ServiceStack.Interfaces, Version=4.0.0.0, Culture=neutral, PublicKeyToken=e06fbc6124f57c43, processorArchitecture=MSIL">
-      <HintPath>..\packages\FreeStack.Redis.4.3.1\lib\ServiceStack.Interfaces.dll</HintPath>
+      <HintPath>..\packages\FreeStack.Redis.4.3.4\lib\ServiceStack.Interfaces.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="ServiceStack.Redis, Version=4.2.0.5138, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FreeStack.Redis.4.3.1\lib\ServiceStack.Redis.dll</HintPath>
+    <Reference Include="ServiceStack.Redis, Version=4.2.0.25141, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\FreeStack.Redis.4.3.4\lib\ServiceStack.Redis.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="ServiceStack.Text, Version=4.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\FreeStack.Redis.4.3.1\lib\ServiceStack.Text.dll</HintPath>
+      <HintPath>..\packages\FreeStack.Redis.4.3.4\lib\ServiceStack.Text.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -121,7 +121,9 @@
     <Compile Include="Model\Attribute\Download.cs" />
     <Compile Include="Model\Attribute\Stoper.cs" />
     <Compile Include="Model\Attribute\Table.cs" />
-    <Compile Include="Model\BaseEntity.cs" />
+    <Compile Include="Model\ExtractType.cs" />
+    <Compile Include="Model\ICustomize.cs" />
+    <Compile Include="Model\SpiderEntity.cs" />
     <Compile Include="Model\ExtractSource.cs" />
     <Compile Include="Model\Formatter\CustomizeFormatter.cs" />
     <Compile Include="Model\Formatter\FormatterFactory.cs" />
@@ -142,6 +144,7 @@
     <Compile Include="Monitor\ISpiderStatus.cs" />
     <Compile Include="MultiPageModel.cs" />
     <Compile Include="Pipeline\CollectorPageModelPipeline.cs" />
+    <Compile Include="Pipeline\MySqlFilePipeline.cs" />
     <Compile Include="Pipeline\ImagePipeline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Scheduler\ISchedulerManager.cs" />
@@ -149,6 +152,7 @@
     <Compile Include="Scheduler\SpiderStatus.cs" />
     <Compile Include="Utils\DoubleKeyDictionary.cs" />
     <Compile Include="Utils\Operator.cs" />
+    <Compile Include="Utils\SafeRedisManagerPool.cs" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Pipeline\ISubPipeline.cs" />
@@ -158,9 +162,6 @@
     <Compile Include="Processor\PatternProcessor.cs" />
     <Compile Include="Processor\CompositePageProcessor.cs" />
     <Compile Include="Pipeline\CompositePipeline.cs" />
-    <Compile Include="Configurable\ExtractRule.cs" />
-    <Compile Include="Configurable\ExpressionType.cs" />
-    <Compile Include="Configurable\ConfigurablePageProcessor.cs" />
     <Compile Include="Downloader\FileCache.cs" />
     <Compile Include="Scheduler\RedisScheduler.cs" />
     <Compile Include="Pipeline\IPageModelPipeline.cs" />
@@ -181,10 +182,14 @@
     <Compile Include="Pipeline\ModelPipeline.cs" />
     <Compile Include="Pipeline\PageModelCollectorPipeline.cs" />
     <Compile Include="Pipeline\ConsolePageModelPipeline.cs" />
-    <Compile Include="Pipeline\PageModelToDbPipeline.cs" />
+    <Compile Include="Pipeline\DatabasePipeline.cs" />
     <Compile Include="Monitor\SpiderMonitor.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Java2Dotnet.Spider.Redial\Java2Dotnet.Spider.Redial.csproj">
+      <Project>{d1ac9b1c-bf83-47c8-b831-d32076a0701b}</Project>
+      <Name>Java2Dotnet.Spider.Redial</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Java2Dotnet.SpiderCore\Java2Dotnet.Spider.Core.csproj">
       <Project>{1d4f80ab-81b0-4e9c-945e-2715a068115c}</Project>
       <Name>Java2Dotnet.Spider.Core</Name>

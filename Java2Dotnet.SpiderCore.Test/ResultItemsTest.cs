@@ -9,13 +9,13 @@ namespace Java2Dotnet.Spider.Core.Test
 		public void TestOrderOfEntries()
 		{
 			ResultItems resultItems = new ResultItems();
-			resultItems.Put("a", "a");
-			resultItems.Put("b", "b");
-			resultItems.Put("c", "c");
+			resultItems.AddResultItem("a", "a");
+			resultItems.AddResultItem("b", "b");
+			resultItems.AddResultItem("c", "c");
 
-			dynamic a = resultItems.Get("a");
-			dynamic b = resultItems.Get("b");
-			dynamic c = resultItems.Get("c");
+			dynamic a = resultItems.GetResultItem("a");
+			dynamic b = resultItems.GetResultItem("b");
+			dynamic c = resultItems.GetResultItem("c");
 			//Assert.AreEqual(a, "a");
 			//Assert.AreEqual(b, "b");
 			//Assert.AreEqual(c, "c");

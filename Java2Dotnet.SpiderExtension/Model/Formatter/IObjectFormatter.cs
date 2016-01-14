@@ -1,6 +1,4 @@
-﻿using Java2Dotnet.Spider.Core;
-
-namespace Java2Dotnet.Spider.Extension.Model.Formatter
+﻿namespace Java2Dotnet.Spider.Extension.Model.Formatter
 {
 	public interface IObjectFormatter
 	{

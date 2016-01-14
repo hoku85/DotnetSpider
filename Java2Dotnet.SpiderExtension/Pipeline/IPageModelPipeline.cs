@@ -7,7 +7,7 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 	/// <summary>
 	/// Implements PageModelPipeline to persistent your page model.
 	/// </summary>
-	public interface IPageModelPipeline
+	public interface IPageModelPipeline : IDisposable
 	{
 		void Process(Dictionary<Type, List<dynamic>> data, ISpider spider);
 	}

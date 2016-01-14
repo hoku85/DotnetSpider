@@ -2,9 +2,15 @@
 
 namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper.Attributes
 {
-	/// <summary>
-	/// 
-	/// </summary>
+	public enum SchemeSuffix
+	{
+		Today,
+		ThisMonday,
+		FirstDayOfMonth,
+		Empty
+	}
+
+	[AttributeUsage(AttributeTargets.Class)]
 	public class Scheme : Attribute
 	{
 		/// <summary>
@@ -12,13 +18,21 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper.Attributes
 		/// </summary>
 		public string Value { get; }
 
+		public string TableName { get; }
+
+		public SchemeSuffix Suffix { get; }
+
 		/// <summary>
 		/// 
 		/// </summary>
 		/// <param name="value"></param>
-		public Scheme(string value)
+		/// <param name="tableName"></param>
+		/// <param name="suffix"></param>
+		public Scheme(string value, string tableName, SchemeSuffix suffix = SchemeSuffix.Empty)
 		{
 			Value = value;
+			Suffix = suffix;
+			TableName = tableName;
 		}
 	}
 }

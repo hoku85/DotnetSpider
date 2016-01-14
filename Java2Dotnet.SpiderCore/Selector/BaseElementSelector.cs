@@ -10,6 +10,7 @@ namespace Java2Dotnet.Spider.Core.Selector
 			if (text != null)
 			{
 				HtmlDocument document = new HtmlDocument();
+				document.OptionAutoCloseOnEnd = true;
 				document.LoadHtml(text);
 				return Select(document.DocumentNode);
 			}
@@ -21,6 +22,7 @@ namespace Java2Dotnet.Spider.Core.Selector
 			if (text != null)
 			{
 				HtmlDocument document = new HtmlDocument();
+				document.OptionAutoCloseOnEnd = true;
 				document.LoadHtml(text);
 				return SelectList(document.DocumentNode);
 			}
@@ -35,6 +37,7 @@ namespace Java2Dotnet.Spider.Core.Selector
 			if (text != null)
 			{
 				HtmlDocument document = new HtmlDocument();
+				document.OptionAutoCloseOnEnd = true;
 				document.LoadHtml(text);
 				return SelectElement(document.DocumentNode);
 			}
@@ -46,6 +49,7 @@ namespace Java2Dotnet.Spider.Core.Selector
 			if (text != null)
 			{
 				HtmlDocument document = new HtmlDocument();
+				document.OptionAutoCloseOnEnd = true;
 				document.LoadHtml(text);
 				return SelectElements(document.DocumentNode);
 			}

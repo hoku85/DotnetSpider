@@ -28,11 +28,11 @@ namespace Java2Dotnet.Spider.Extension.Monitor
 					{
 						Invoke(new Action(() =>
 						{
-							this.tbErrorPageCount.Text = _spiderStatus.ErrorPageCount.ToString();
-							this.tbLeftRequestCount.Text = _spiderStatus.LeftPageCount.ToString();
-							this.tbTotalRequestCount.Text = _spiderStatus.TotalPageCount.ToString();
-							this.tbPagePerSecond.Text = _spiderStatus.PagePerSecond.ToString(CultureInfo.InvariantCulture);
-							this.tbProcessCount.Text = _spiderStatus.ThreadCount.ToString();
+							tbErrorPageCount.Text = _spiderStatus.ErrorPageCount.ToString();
+							tbLeftRequestCount.Text = _spiderStatus.LeftPageCount.ToString();
+							tbTotalRequestCount.Text = _spiderStatus.TotalPageCount.ToString();
+							tbPagePerSecond.Text = _spiderStatus.PagePerSecond.ToString(CultureInfo.InvariantCulture);
+							tbProcessCount.Text = _spiderStatus.ThreadCount.ToString();
 						}));
 					}
 					Thread.Sleep(1000);

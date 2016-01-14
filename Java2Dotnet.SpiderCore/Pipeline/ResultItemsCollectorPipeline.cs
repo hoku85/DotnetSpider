@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
@@ -19,6 +18,11 @@ namespace Java2Dotnet.Spider.Core.Pipeline
 		public ICollection GetCollected()
 		{
 			return _collector;
+		}
+
+		public void Dispose()
+		{
+			_collector.Clear();
 		}
 	}
 }

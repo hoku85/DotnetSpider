@@ -17,12 +17,12 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 	[Experimental]
 	public class MultiPagePipeline : IPipeline
 	{
-		private readonly DoubleKeyMap<string, string, bool> _pageMap = new DoubleKeyMap<string, string, bool>();
-		private readonly DoubleKeyMap<string, string, IMultiPageModel> _objectMap = new DoubleKeyMap<string, string, IMultiPageModel>();
+		private DoubleKeyMap<string, string, bool> _pageMap = new DoubleKeyMap<string, string, bool>();
+		private DoubleKeyMap<string, string, IMultiPageModel> _objectMap = new DoubleKeyMap<string, string, IMultiPageModel>();
 
 		public void Process(ResultItems resultItems, ISpider spider)
 		{
-			IDictionary resultItemsAll = resultItems.GetAll();
+			IDictionary resultItemsAll = resultItems.Results;
 			List<object> deleteList = new List<object>();
 			foreach (DictionaryEntry entry in resultItemsAll)
 			{
@@ -73,7 +73,7 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 					needDelete = true;
 					return;
 				}
-				List<EntryObject> entryList = _objectMap.Get(multiPageModel.GetPageKey()).Select(entry => new EntryObject() {Entry = entry}).ToList();
+				List<EntryObject> entryList = _objectMap.Get(multiPageModel.GetPageKey()).Select(entry => new EntryObject() { Entry = entry }).ToList();
 
 				if (entryList.Count != 0)
 				{
@@ -106,6 +106,12 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 					return string.Compare(Entry.Key, other.Entry.Key, StringComparison.Ordinal);
 				}
 			}
+		}
+
+		public void Dispose()
+		{
+			_pageMap = null;
+			_objectMap = null;
 		}
 	}
 }

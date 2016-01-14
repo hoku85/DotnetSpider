@@ -24,7 +24,7 @@ namespace Java2Dotnet.Spider.Extension.Monitor
 		{
 			get
 			{
-				IMonitorableScheduler scheduler = Spider.GetScheduler() as IMonitorableScheduler;
+				IMonitorableScheduler scheduler = Spider.Scheduler as IMonitorableScheduler;
 				if (scheduler != null)
 				{
 					return scheduler.GetLeftRequestsCount(Spider);
@@ -38,7 +38,7 @@ namespace Java2Dotnet.Spider.Extension.Monitor
 		{
 			get
 			{
-				IMonitorableScheduler scheduler = Spider.GetScheduler() as IMonitorableScheduler;
+				IMonitorableScheduler scheduler = Spider.Scheduler as IMonitorableScheduler;
 				if (scheduler != null)
 				{
 					return scheduler.GetTotalRequestsCount(Spider);
@@ -54,15 +54,15 @@ namespace Java2Dotnet.Spider.Extension.Monitor
 
 		public List<string> ErrorPages => MonitorSpiderListener.ErrorUrls;
 
-		public string Status => Spider.GetStatus().ToString();
+		public string Status => Spider.StatusCode.ToString();
 
-		public int AliveThreadCount => Spider.GetThreadAliveCount();
+		public int AliveThreadCount => Spider.ThreadAliveCount;
 
 		public int ThreadCount => Spider.ThreadNum;
 
 		public void Start()
 		{
-			Spider.Start();
+			Spider.Run();
 		}
 
 		public void Stop()
@@ -70,9 +70,9 @@ namespace Java2Dotnet.Spider.Extension.Monitor
 			Spider.Stop();
 		}
 
-		public DateTime StartTime => Spider.GetStartTime();
+		public DateTime StartTime => Spider.StartTime;
 
-		public DateTime EndTime => Spider.GetEndOrCurrentTime();
+		public DateTime EndTime => Spider.FinishedTime == DateTime.MinValue ? DateTime.Now : Spider.FinishedTime;
 
 		public double PagePerSecond
 		{

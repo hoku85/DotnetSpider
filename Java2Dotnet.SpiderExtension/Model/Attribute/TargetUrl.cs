@@ -1,5 +1,4 @@
 using System;
-using Java2Dotnet.Spider.Extension.Model.Formatter;
 
 namespace Java2Dotnet.Spider.Extension.Model.Attribute
 {
@@ -16,13 +15,21 @@ namespace Java2Dotnet.Spider.Extension.Model.Attribute
 		///      "." stand for literal character "." instead of "any character".
 		///      "*" stand for any legal character for url in 0-n length ([^"'#]*) instead of "any length".
 		/// </summary>
-		public string[] Value { get; set; }
+		public string[] Value { get; }
 
 		/// <summary>
 		/// Define the region for url extracting.
-		/// Only support XPath.
-		/// When sourceRegion is set, the urls will be extracted only from the region instead of entire content.
+		/// Only support XPath, JsonPath
 		/// </summary>
-		public string SourceRegion { get; set; }
+		public string SourceRegion { get; }
+
+		public ExtractType ExtractType { get; }
+
+		public TargetUrl(string[] value, string sourceRegion = null, ExtractType extractType = ExtractType.XPath)
+		{
+			Value = value;
+			SourceRegion = sourceRegion;
+			ExtractType = extractType;
+		}
 	}
 }

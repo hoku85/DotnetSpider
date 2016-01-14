@@ -8,10 +8,10 @@ namespace Java2Dotnet.Spider.Core.Scheduler.Component
 
 		public bool IsDuplicate(Request request, ISpider spider)
 		{
-			bool isDuplicate = _urls.ContainsKey(request.Url);
+			bool isDuplicate = _urls.ContainsKey(request.Url.ToString());
 			if (!isDuplicate)
 			{
-				_urls.GetOrAdd(request.Url, string.Empty);
+				_urls.GetOrAdd(request.Url.ToString(), string.Empty);
 			}
 			return isDuplicate;
 		}

@@ -1,6 +1,4 @@
-using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Runtime.CompilerServices;
 
 namespace Java2Dotnet.Spider.Core
@@ -11,22 +9,22 @@ namespace Java2Dotnet.Spider.Core
 	/// </summary>
 	public class ResultItems
 	{
-		private readonly IDictionary _fields = new Dictionary<string, dynamic>();
+		private readonly Dictionary<string, dynamic> _fields = new Dictionary<string, dynamic>();
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public dynamic Get(string key)
+		public dynamic GetResultItem(string key)
 		{
-			return _fields.Contains(key) ? _fields[key] : null;
+			return _fields.ContainsKey(key) ? _fields[key] : null;
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public ResultItems Put(string key, dynamic value)
+		public ResultItems AddResultItem(string key, dynamic value)
 		{
 			_fields.Add(key, value);
 			return this;
 		}
 
-		public IDictionary GetAll() => _fields;
+		public Dictionary<string, dynamic> Results => _fields;
 
 		public Request Request { get; set; }
 
@@ -38,11 +36,7 @@ namespace Java2Dotnet.Spider.Core
 
 		public override string ToString()
 		{
-			return "ResultItems{" +
-					"fields=" + _fields +
-					", request=" + Request +
-					", skip=" + IsSkip +
-					'}';
+			return "ResultItems{ fields=" + _fields + ", request=" + Request + ", skip=" + IsSkip + '}';
 		}
 	}
 }

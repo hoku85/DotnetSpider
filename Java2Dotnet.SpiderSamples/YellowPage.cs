@@ -13,13 +13,13 @@
 //	{
 //		[Scheme("yellowpage")]
 //		[StoredAs("yellowurl_cat")]
-//		[ExtractBy(Value = "//ul[@class='typical']/li", Type = ExtractBy.ExtracType.XPath, Multi = true)]
+//		[ExtractBy(Value = "//ul[@class='typical']/li", Type = ExtractBy.ExtractType.XPath, Multi = true)]
 //		public class Category : BaseEntity
 //		{
 //			[StoredAs("name", StoredAs.ValueType.Varchar, false, 50)]
-//			[ExtractBy(Value = "/li/a/@title", Type = ExtractBy.ExtracType.XPath)]
+//			[ExtractBy(Value = "/li/a/@title", Type = ExtractBy.ExtractType.XPath)]
 //			public string Name { get; set; }
-//			[ExtractBy(Value = "/li/a/@href", Type = ExtractBy.ExtracType.XPath)]
+//			[ExtractBy(Value = "/li/a/@href", Type = ExtractBy.ExtractType.XPath)]
 //			[StoredAs("url", StoredAs.ValueType.Text)]
 //			public string Url { get; set; }
 //			[StoredAs("taskflag", StoredAs.ValueType.Char, false, 1)]

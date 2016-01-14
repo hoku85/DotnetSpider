@@ -103,6 +103,10 @@
       <Project>{b3c85f81-3031-4705-bb60-811810f472ee}</Project>
       <Name>Java2Dotnet.Spider.Extension</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Java2Dotnet.SpiderLib\Java2Dotnet.Spider.Lib.csproj">
+      <Project>{7EA772D4-3A2B-4C2A-9537-97F4EBC180C2}</Project>
+      <Name>Java2Dotnet.Spider.Lib</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Java2Dotnet.SpiderScripts\Java2Dotnet.Spider.Scripts.csproj">
       <Project>{7f60c451-cb11-4d61-aa71-5d921d2f81a4}</Project>
       <Name>Java2Dotnet.Spider.Scripts</Name>

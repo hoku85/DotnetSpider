@@ -18,7 +18,7 @@ namespace Java2Dotnet.Spider.Extension.Processor
 
 		public void Process(Page page)
 		{
-			if ((from subPageProcessor in _subPageProcessors where subPageProcessor.Match(page.GetRequest()) select subPageProcessor.ProcessPage(page)).Any(matchOtherProcessorProcessor => matchOtherProcessorProcessor != MatchOther.Yes))
+			if ((from subPageProcessor in _subPageProcessors where subPageProcessor.Match(page.Request) select subPageProcessor.ProcessPage(page)).Any(matchOtherProcessorProcessor => matchOtherProcessorProcessor != MatchOther.Yes))
 			{
 			}
 		}

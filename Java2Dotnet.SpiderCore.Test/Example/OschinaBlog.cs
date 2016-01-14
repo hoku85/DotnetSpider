@@ -7,16 +7,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Java2Dotnet.Spider.Core.Test.Example
 {
-	[TargetUrl(Value = new [] { "http://my.oschina.net/flashsword/blog" })]
+	[TargetUrl(new[] { "http://my.oschina.net/flashsword/blog" })]
 	public class OschinaBlog
 	{
 		[ExtractBy(Value = "//title/text()")]
 		public string Title { get; set; }
 
-		[ExtractBy(Value = "div.BlogContent", Type = ExtractBy.ExtracType.Css)]
+		[ExtractBy(Value = "div.BlogContent", Type = ExtractType.Css)]
 		public string Content { get; set; }
 
-		[ExtractBy(Value = "//div[@class='BlogTags']/a/text()", Multi = true)]
+		[ExtractBy(Value = "//div[@class='BlogTags']/a/text()")]
 		public List<string> Tags { get; set; }
 
 		[ExtractBy(Value = "//div[@class='BlogStat']/regex('\\d+-\\d+-\\d+\\s+\\d+:\\d+')")]
@@ -30,7 +30,7 @@ namespace Java2Dotnet.Spider.Core.Test.Example
 		public void TestOschinaBlog()
 		{
 			//results will be saved to "/data/webmagic/" in json format
-			OoSpider.Create(new Site(), new JsonFilePageModelPipeline("/data/webmagic/"), typeof(OschinaBlog)).AddUrl("http://my.oschina.net/flashsword/blog").Run();
+			OoSpider.Create(new Site(), new JsonFilePageModelPipeline("/data/webmagic/"), typeof(OschinaBlog)).AddStartUrl("http://my.oschina.net/flashsword/blog").Run();
 		}
 	}
 }

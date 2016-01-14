@@ -7,7 +7,6 @@ using Java2Dotnet.Spider.Core.Processor;
 using Java2Dotnet.Spider.Core.Selector;
 using Java2Dotnet.Spider.Extension.Model;
 using Java2Dotnet.Spider.Extension.Model.Formatter;
-using ServiceStack;
 
 namespace Java2Dotnet.Spider.Extension.Processor
 {
@@ -17,6 +16,8 @@ namespace Java2Dotnet.Spider.Extension.Processor
 	public class ModelPageProcessor : IPageProcessor
 	{
 		private readonly IList<PageModelExtractor> _pageModelExtractorList = new List<PageModelExtractor>();
+
+		public Func<Page, IList<string>> GetCustomizeTargetUrls;
 
 		public static ModelPageProcessor Create(Site site, params Type[] types)
 		{
@@ -28,6 +29,17 @@ namespace Java2Dotnet.Spider.Extension.Processor
 			return modelPageProcessor;
 		}
 
+		public static T Create<T>(Site site, params Type[] types) where T : ModelPageProcessor
+		{
+			T t = (T)Activator.CreateInstance(typeof(T), new object[] { site });
+
+			foreach (Type type in types)
+			{
+				t.AddPageModel(type);
+			}
+			return t;
+		}
+
 		public ModelPageProcessor AddPageModel(Type type)
 		{
 			PageModelExtractor pageModelExtractor = PageModelExtractor.Create(type);
@@ -35,30 +47,37 @@ namespace Java2Dotnet.Spider.Extension.Processor
 			return this;
 		}
 
-		private ModelPageProcessor(Site site)
+		protected ModelPageProcessor(Site site)
 		{
 			Site = site;
 		}
 
-		public void Process(Page page)
+		public virtual void Process(Page page)
 		{
 			foreach (PageModelExtractor pageModelExtractor in _pageModelExtractorList)
 			{
 				ExtractLinks(page, pageModelExtractor.GetHelpUrlRegionSelector(), pageModelExtractor.GetHelpUrlPatterns());
 
-				object process = pageModelExtractor.Process(page);
-				if (process == null || (process is IList && ((IList)process).Count == 0))
+				dynamic process = pageModelExtractor.Process(page);
+				if (process == null || (process is IEnumerable && !((IEnumerable)process).GetEnumerator().MoveNext()))
 				{
 					continue;
 				}
 				PostProcessPageModel(process);
-				page.PutField(pageModelExtractor.GetModelType().FullName, process);
+				page.AddResultItem(pageModelExtractor.GetActualType().FullName, process);
 
-				ExtractLinks(page, pageModelExtractor.GetTargetUrlRegionSelector(), pageModelExtractor.GetTargetUrlPatterns(), pageModelExtractor.GetTargetUrlFormatter());
+				if (GetCustomizeTargetUrls == null)
+				{
+					ExtractLinks(page, pageModelExtractor.GetTargetUrlRegionSelector(), pageModelExtractor.GetTargetUrlPatterns(), pageModelExtractor.GetTargetUrlFormatter());
+				}
+				else
+				{
+					page.AddTargetRequests(GetCustomizeTargetUrls(page));
+				}
 			}
-			if (page.GetResultItems().GetAll().Count == 0)
+			if (page.ResultItems.Results.Count == 0)
 			{
-				page.GetResultItems().IsSkip = true;
+				page.ResultItems.IsSkip = true;
 			}
 		}
 
@@ -71,7 +90,7 @@ namespace Java2Dotnet.Spider.Extension.Processor
 		/// <param name="formatter"></param>
 		private void ExtractLinks(Page page, ISelector urlRegionSelector, IList<Regex> urlPatterns, IObjectFormatter formatter = null)
 		{
-			var links = urlRegionSelector == null ? new List<string>() : page.GetHtml().SelectList(urlRegionSelector).Links().GetAll();
+			var links = urlRegionSelector == null ? new List<string>() : page.HtmlDocument.SelectList(urlRegionSelector).Links().GetAll();
 
 			// check: 仔细考虑是放在前面, 还是在后面做 formatter, 我倾向于在前面. 对targetUrl做formatter则表示Start Url也应该是要符合这个规则的。
 			if (formatter != null)
@@ -96,13 +115,13 @@ namespace Java2Dotnet.Spider.Extension.Processor
 				{
 					if (targetUrlPattern.IsMatch(link))
 					{
-						page.AddTargetRequest(new Request(link, page.GetRequest().NextDeep(), page.GetRequest().Extras));
+						page.AddTargetRequest(new Request(link, page.Request.NextDepth, page.Request.Extras));
 					}
 				}
 			}
 		}
 
-		protected virtual void PostProcessPageModel(object obj)
+		protected virtual void PostProcessPageModel(dynamic obj)
 		{
 		}
 

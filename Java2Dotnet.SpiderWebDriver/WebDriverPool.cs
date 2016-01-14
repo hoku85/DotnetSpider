@@ -112,7 +112,7 @@ namespace Java2Dotnet.Spider.WebDriver
 							ChromeOptions opt = new ChromeOptions();
 							if (!_option.LoadImage)
 							{
-								opt.AddUserProfilePreference("profile", new { default_content_settings = new { images = 2 } });
+								opt.AddUserProfilePreference("profile", new { default_content_setting_values = new { images = 2 } });
 							}
 							if (!string.IsNullOrEmpty(_option.Proxy))
 							{

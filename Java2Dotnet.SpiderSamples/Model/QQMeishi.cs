@@ -5,8 +5,8 @@ using Java2Dotnet.Spider.Extension.Pipeline;
 
 namespace Java2Dotnet.Spider.Samples.Model
 {
-	[TargetUrl(Value = new[] { "http://meishi.qq.com/beijing/c/all[\\-p2]*" })]
-	[ExtractBy(Value = "//ul[@id=\"promos_list2\"]/li", Multi = true)]
+	[TargetUrl(new[] { "http://meishi.qq.com/beijing/c/all[\\-p2]*" })]
+	[ExtractBy(Value = "//ul[@id=\"promos_list2\"]/li")]
 	public class QqMeishi
 	{
 		[ExtractBy(Value = "//div[@class=info]/a[@class=title]/h4/text()")]
@@ -17,7 +17,7 @@ namespace Java2Dotnet.Spider.Samples.Model
 
 		public static void Run()
 		{
-			OoSpider.Create(new Site(), new ConsolePageModelPipeline(), typeof(QqMeishi)).AddUrl("http://meishi.qq.com/beijing/c/all").SetThreadNum(4).Run();
+			OoSpider.Create(new Site(), new ConsolePageModelPipeline(), typeof(QqMeishi)).AddStartUrl("http://meishi.qq.com/beijing/c/all").SetThreadNum(4).Run();
 		}
 	}
 }

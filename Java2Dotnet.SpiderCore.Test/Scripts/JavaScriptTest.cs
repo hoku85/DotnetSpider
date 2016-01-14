@@ -11,13 +11,15 @@ namespace Java2Dotnet.Spider.Core.Test.Scripts
 		{
 			ScriptProcessor pageProcessor = ScriptProcessorBuilder.Custom().Language(Language.Javascript).ScriptFromClassPathFile("Java2Dotnet.Spider.Scripts.Resource.js.youkuvideo.js").Build();
 			pageProcessor.Site.SleepTime = 500;
-			Spider.Create(pageProcessor).AddUrl("http://my.oschina.net/flashsword/blog").SetSpawnUrl(false).Run();
+			var spider = Spider.Create(pageProcessor).AddStartUrl("http://my.oschina.net/flashsword/blog");
+			spider.SpawnUrl = false;
+			spider.Run();
 		}
 
 		[TestMethod]
 		public void TestJavaConsoleCommand()
 		{
-			ScriptConsole.Main(new string[] { "-l", "JAVASCRIPT", "-t", "2", "-f", "c:\\", "-s", "500" });
+			ScriptConsole.Main(new [] { "-l", "JAVASCRIPT", "-t", "2", "-f", "c:\\", "-s", "500" });
 		}
 	}
 }

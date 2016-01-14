@@ -6,7 +6,6 @@ using Java2Dotnet.Spider.Core.Pipeline;
 using Java2Dotnet.Spider.Core.Processor;
 using Java2Dotnet.Spider.Core.Selector;
 using Java2Dotnet.Spider.Core.Utils;
-using log4net;
 
 namespace Java2Dotnet.Spider.Extension.Downloader
 {
@@ -19,12 +18,9 @@ namespace Java2Dotnet.Spider.Extension.Downloader
 		private IDownloader _downloaderWhenFileMiss;
 		private readonly IPageProcessor _pageProcessor;
 
-		public FileCache(string startUrl, string urlPattern)
-			: this(startUrl, urlPattern, "/data/dotnetspider/temp/")
-		{
-		}
-
-		public FileCache(string startUrl, string urlPattern, string path)
+		public Site Site => _pageProcessor.Site;
+		public int ThreadNum { get; set; }
+		public FileCache(string startUrl, string urlPattern, string path = "/data/dotnetspider/temp/")
 		{
 			_pageProcessor = new SimplePageProcessor(startUrl, urlPattern);
 			SetPath(path);
@@ -44,7 +40,7 @@ namespace Java2Dotnet.Spider.Extension.Downloader
 			Page page;
 			try
 			{
-				FileInfo file = PrepareFile(path + Encrypt.Md5Encrypt(request.Url));
+				FileInfo file = PrepareFile(path + Encrypt.Md5Encrypt(request.Url.ToString()));
 
 				StreamReader bufferedReader = new StreamReader(file.OpenRead());
 				string line = bufferedReader.ReadLine();
@@ -52,8 +48,8 @@ namespace Java2Dotnet.Spider.Extension.Downloader
 				{
 					string html = GetHtml(bufferedReader);
 					page = new Page(request);
-					page.SetUrl(PlainText.Create(request.Url));
-					page.SetHtml(Html.Create(html));
+					page.Url = request.Url.ToString();
+					page.HtmlDocument = Html.Create(html);
 				}
 			}
 			catch (IOException e)
@@ -71,8 +67,27 @@ namespace Java2Dotnet.Spider.Extension.Downloader
 			return page;
 		}
 
-		public void SetThreadNum(int threadNum)
+		public void Process(ResultItems resultItems, ISpider spider)
 		{
+			string path = BasePath + PathSeperator + spider.Identify + PathSeperator;
+			try
+			{
+				FileInfo fileInfo = PrepareFile(path + Encrypt.Md5Encrypt(resultItems.Request.Url.ToString()) + ".html");
+				using (StreamWriter writer = new StreamWriter(fileInfo.OpenWrite(), Encoding.UTF8))
+				{
+					writer.WriteLine("url:\t" + resultItems.Request.Url);
+					writer.WriteLine("html:\t" + resultItems.GetResultItem("html"));
+				}
+			}
+			catch (IOException e)
+			{
+				Logger.Warn("write file error", e);
+			}
+		}
+
+		public void Process(Page page)
+		{
+			_pageProcessor.Process(page);
 		}
 
 		private string GetHtml(StreamReader bufferedReader)
@@ -102,29 +117,8 @@ namespace Java2Dotnet.Spider.Extension.Downloader
 			return page;
 		}
 
-		public void Process(ResultItems resultItems, ISpider spider)
+		public void Dispose()
 		{
-			string path = BasePath + PathSeperator + spider.Identify + PathSeperator;
-			try
-			{
-				FileInfo fileInfo = PrepareFile(path + Encrypt.Md5Encrypt(resultItems.Request.Url) + ".html");
-				using (StreamWriter writer = new StreamWriter(fileInfo.OpenWrite(), Encoding.UTF8))
-				{
-					writer.WriteLine("url:\t" + resultItems.Request.Url);
-					writer.WriteLine("html:\t" + resultItems.Get("html"));
-				}
-			}
-			catch (IOException e)
-			{
-				Logger.Warn("write file error", e);
-			}
 		}
-
-		public void Process(Page page)
-		{
-			_pageProcessor.Process(page);
-		}
-
-		public Site Site => _pageProcessor.Site;
 	}
 }

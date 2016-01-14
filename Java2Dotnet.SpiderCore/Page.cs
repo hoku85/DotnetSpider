@@ -7,47 +7,56 @@ namespace Java2Dotnet.Spider.Core
 {
 	/// <summary>
 	/// Object storing extracted result and urls to fetch. 
-	/// Not thread safe 
-	/// Main method：                                                
-	/// {@link #GetUrl()} get url of current page                   
-	/// {@link #GetHtml()}  get content of current page                  
-	/// {@link #PutField(String, Object)}  save extracted result             
-	/// {@link #GetResultItems()} get extract results to be used in {@link us.codecraft.webmagic.pipeline.Pipeline} 
-	/// {@link #AddTargetRequests(java.util.List)} {@link #addTargetRequest(String)} add urls to fetch                  
 	/// </summary>
 	public class Page
 	{
 		public const string Images = "580c9065-0f44-47e9-94ea-b172d5a730c0";
-		private readonly Request _request;
-
-		private readonly ResultItems _resultItems = new ResultItems();
 
 		private Html _html;
-
 		private Json _json;
 
-		private string _rawText;
+		/// <summary>
+		/// Url of current page
+		/// </summary>
+		/// <returns></returns>
+		public string Url { get; set; }
 
-		private ISelectable _url;
+		/// <summary>
+		/// Get url of current page
+		/// </summary>
+		/// <returns></returns>
+		public string TargetUrl { get; set; }
 
-		private ISelectable _targetUrl;
+		public string Title { get; set; }
 
-		private int _statusCode;
+		/// <summary>
+		/// Get request of current page
+		/// </summary>
+		/// <returns></returns>
+		public Request Request { get; }
 
-		private bool _needCycleRetry;
+		public bool IsNeedCycleRetry { get; set; }
 
-		private readonly HashSet<Request> _targetRequests = new HashSet<Request>();
+		public ResultItems ResultItems { get; } = new ResultItems();
+
+		public int StatusCode { get; set; }
+
+		public string RawText { get; set; }
+
+		public bool MissTargetUrls { get; set; }
+
+		public bool IsSkip
+		{
+			get { return ResultItems.IsSkip; }
+			set { ResultItems.IsSkip = value; }
+		}
+
+		public HashSet<Request> TargetRequests { get; } = new HashSet<Request>();
 
 		public Page(Request request)
 		{
-			_request = request;
-			_resultItems.Request = request;
-		}
-
-		public Page SetSkip(bool skip)
-		{
-			_resultItems.IsSkip = skip;
-			return this;
+			Request = request;
+			ResultItems.Request = request;
 		}
 
 		/// <summary>
@@ -55,18 +64,22 @@ namespace Java2Dotnet.Spider.Core
 		/// </summary>
 		/// <param name="key"></param>
 		/// <param name="field"></param>
-		public void PutField(string key, object field)
+		public void AddResultItem(string key, dynamic field)
 		{
-			_resultItems.Put(key, field);
+			ResultItems.AddResultItem(key, field);
 		}
 
 		/// <summary>
 		/// Get html content of page
 		/// </summary>
 		/// <returns></returns>
-		public Html GetHtml()
+		public Html HtmlDocument
 		{
-			return _html ?? (_html = new Html(_rawText, _request.Url));
+			get
+			{
+				return _html ?? (_html = new Html(RawText, Request.Url));
+			}
+			set { _html = value; }
 		}
 
 		/// <summary>
@@ -75,17 +88,7 @@ namespace Java2Dotnet.Spider.Core
 		/// <returns></returns>
 		public Json GetJson()
 		{
-			return _json ?? (_json = new Json(_rawText));
-		}
-
-		public void SetHtml(Html html)
-		{
-			_html = html;
-		}
-
-		public HashSet<Request> GetTargetRequests()
-		{
-			return _targetRequests;
+			return _json ?? (_json = new Json(RawText));
 		}
 
 		/// <summary>
@@ -101,8 +104,8 @@ namespace Java2Dotnet.Spider.Core
 				{
 					continue;
 				}
-				string s1 = UrlUtils.CanonicalizeUrl(s, _url.ToString());
-				_targetRequests.Add(new Request(s1, _request.NextDeep(), _request?.Extras));
+				string s1 = UrlUtils.CanonicalizeUrl(s, Url);
+				TargetRequests.Add(new Request(s1, Request.NextDepth, Request.Extras));
 			}
 		}
 
@@ -112,7 +115,7 @@ namespace Java2Dotnet.Spider.Core
 		/// <param name="requests"></param>
 		/// <param name="priority"></param>
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void AddTargetRequests(IList<string> requests, long priority)
+		public void AddTargetRequests(IList<string> requests, int priority)
 		{
 			foreach (string s in requests)
 			{
@@ -120,12 +123,11 @@ namespace Java2Dotnet.Spider.Core
 				{
 					continue;
 				}
-				string s1 = UrlUtils.CanonicalizeUrl(s, _url.ToString());
-				Request request = new Request(s1, _request.NextDeep(), _request?.Extras) { Priority = priority };
-				_targetRequests.Add(request);
+				string s1 = UrlUtils.CanonicalizeUrl(s, Url);
+				Request request = new Request(s1, Request.NextDepth, Request.Extras) { Priority = priority };
+				TargetRequests.Add(request);
 			}
 		}
-
 
 		/// <summary>
 		/// Add url to fetch
@@ -139,8 +141,8 @@ namespace Java2Dotnet.Spider.Core
 				return;
 			}
 
-			requestString = UrlUtils.CanonicalizeUrl(requestString, _url.ToString());
-			_targetRequests.Add(new Request(requestString, _request.NextDeep(), _request?.Extras));
+			requestString = UrlUtils.CanonicalizeUrl(requestString, Url);
+			TargetRequests.Add(new Request(requestString, Request.NextDepth, Request.Extras));
 		}
 
 		/// <summary>
@@ -149,102 +151,12 @@ namespace Java2Dotnet.Spider.Core
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		public void AddTargetRequest(Request request)
 		{
-			_targetRequests.Add(request);
+			TargetRequests.Add(request);
 		}
-
-		/// <summary>
-		/// Get url of current page
-		/// </summary>
-		/// <returns></returns>
-		public ISelectable GetUrl()
-		{
-			return _url;
-		}
-
-		/// <summary>
-		/// Get url of current page
-		/// </summary>
-		/// <returns></returns>
-		public ISelectable GetTargetUrl()
-		{
-			return _targetUrl;
-		}
-
-		public void SetUrl(ISelectable url)
-		{
-			_url = url;
-		}
-
-		public string Title { get; set; }
-
-		public void SetTargetUrl(ISelectable url)
-		{
-			_targetUrl = url;
-		}
-
-		/// <summary>
-		/// Get request of current page
-		/// </summary>
-		/// <returns></returns>
-		public Request GetRequest()
-		{
-			return _request;
-		}
-
-		public bool IsNeedCycleRetry()
-		{
-			return _needCycleRetry;
-		}
-
-		public void SetNeedCycleRetry(bool needCycleRetry)
-		{
-			_needCycleRetry = needCycleRetry;
-		}
-
-		//public void SetRequest(Request request)
-		//{
-		//	_request = request;
-		//	_resultItems.Request = request;
-		//}
-
-		public ResultItems GetResultItems()
-		{
-			return _resultItems;
-		}
-
-		public int GetStatusCode()
-		{
-			return _statusCode;
-		}
-
-		public void SetStatusCode(int statusCode)
-		{
-			_statusCode = statusCode;
-		}
-
-		public string GetRawText()
-		{
-			return _rawText;
-		}
-
-		public Page SetRawText(string rawText)
-		{
-			_rawText = rawText;
-			return this;
-		}
-
-		public bool MissTargetUrls { get; set; }
 
 		public override string ToString()
 		{
-			return "Page{" +
-					"request=" + _request +
-					", resultItems=" + _resultItems +
-					", rawText='" + _rawText + '\'' +
-					", url=" + _url +
-					", statusCode=" + _statusCode +
-					", targetRequests=" + _targetRequests +
-					'}';
+			return $"Page{{request='{Request}', resultItems='{ResultItems}', rawText='{RawText}', url={Url}, statusCode={StatusCode}, targetRequests={TargetRequests}}}";
 		}
 	}
 }

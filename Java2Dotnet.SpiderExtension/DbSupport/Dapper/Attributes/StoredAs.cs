@@ -2,9 +2,7 @@
 
 namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper.Attributes
 {
-	/// <summary>
-	/// 
-	/// </summary>
+	[AttributeUsage(AttributeTargets.Property)]
 	public class StoredAs : Attribute
 	{
 		public enum ValueType { Text, Varchar, Char, Time, Float, Bool, Int, Date, Long }

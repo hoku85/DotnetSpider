@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.IO;
 using System.Net;
 using System.Runtime.CompilerServices;
@@ -44,10 +43,14 @@ namespace Java2Dotnet.Spider.Core.Test
 		{
 			public void Process(ResultItems resultItems, ISpider spider)
 			{
-				foreach (DictionaryEntry entry in resultItems.GetAll())
+				foreach (var entry in resultItems.Results)
 				{
-					Console.WriteLine(entry.Key + ":" + entry.Value);
+					Console.WriteLine($"{entry.Key}:{entry.Value}");
 				}
+			}
+
+			public void Dispose()
+			{
 			}
 		}
 
@@ -64,7 +67,7 @@ namespace Java2Dotnet.Spider.Core.Test
 
 		private void TestRound()
 		{
-			Spider spider = Spider.Create(new TestPageProcessor()).SetScheduler(new TestScheduler()).SetThreadNum(10);
+			Spider spider = Spider.Create(new TestPageProcessor(), new TestScheduler()).SetThreadNum(10);
 			spider.Run();
 		}
 
@@ -94,17 +97,13 @@ namespace Java2Dotnet.Spider.Core.Test
 				}
 				return new Request("test", 1, null);
 			}
-
-			public void Finish(ISpider spider)
-			{
-			}
 		}
 
 		private class TestPageProcessor : IPageProcessor
 		{
 			public void Process(Page page)
 			{
-				page.SetSkip(true);
+				page.IsSkip = true;
 			}
 
 			public Site Site => new Site { SleepTime = 0 };
@@ -114,13 +113,12 @@ namespace Java2Dotnet.Spider.Core.Test
 		{
 			public Page Download(Request request, ISpider spider)
 			{
-				return new Page(request).SetRawText("");
+				var page = new Page(request);
+				page.RawText = "";
+				return page;
 			}
 
-			public void SetThreadNum(int threadNum)
-			{
-				throw new NotImplementedException();
-			}
+			public int ThreadNum { get; set; }
 		}
 	}
 }

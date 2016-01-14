@@ -106,5 +106,10 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 				}
 			}
 		}
+
+		public void Dispose()
+		{
+			_cache.Clear();
+		}
 	}
 }

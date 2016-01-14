@@ -1,124 +1,83 @@
 using System;
+using System.Collections;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Java2Dotnet.Spider.Core.Utils;
+using Java2Dotnet.Spider.Lib;
 
 namespace Java2Dotnet.Spider.Core
 {
 	/// <summary>
-	/// Thread pool for workers. 
-	/// Use {@link java.util.concurrent.ExecutorService} as inner implement.  
-	/// New feature: 
-	/// 1. Block when thread pool is full to avoid poll many urls without process.
-	/// 2. Count of thread alive for monitor.
+	/// Thread pool. 
 	/// </summary>
 	public class CountableThreadPool
 	{
-		private readonly int _maxDegreeOfParallelism;
-		private readonly int _maxTaskCount;
+		private readonly SynchronizedList<Task> _tasks = new SynchronizedList<Task>();
+		private readonly int _cachedSize;
+		private bool _exit;
 		private readonly TaskFactory _factory;
-		private readonly CancellationTokenSource _cts = new CancellationTokenSource();
-		private readonly LinkedList<Task> _tasks = new LinkedList<Task>();
-		private bool _end;
 
 		public CountableThreadPool(int threadNum = 5)
 		{
-			_maxDegreeOfParallelism = threadNum;
-			_maxTaskCount = _maxDegreeOfParallelism + threadNum;
+			ThreadNum = threadNum;
+			_cachedSize = ThreadNum * 2;
 
-			LimitedConcurrencyLevelTaskScheduler lcts = new LimitedConcurrencyLevelTaskScheduler(threadNum);
-			_factory = new TaskFactory(lcts);
+			_factory = new TaskFactory(new LimitedConcurrencyLevelTaskScheduler(ThreadNum));
 
 			Task.Factory.StartNew(() =>
 			{
 				while (true)
 				{
-					if (_end)
+					if (_exit)
 					{
 						break;
 					}
 
-					lock (_tasks)
+					var finishedTasks = _tasks.Where(t => t.IsCompleted).ToList();
+					foreach (var finishedTask in finishedTasks)
 					{
-						var finishedTasks = _tasks.Where(t => t.IsCompleted).ToList();
-						foreach (var finishedTask in finishedTasks)
-						{
-							_tasks.Remove(finishedTask);
-						}
-						Thread.Sleep(50);
+						_tasks.Remove(finishedTask);
 					}
+
+					Thread.Sleep(10);
 				}
 			});
 		}
 
-		public int GetThreadAlive()
+		public int ThreadAlive
 		{
-			lock (_tasks)
+			get { return _tasks.Where(t => t.Status == TaskStatus.Running).Count; }
+		}
+
+		public int ThreadNum { get; }
+
+		[MethodImpl(MethodImplOptions.Synchronized)]
+		public void Push(Func<object, bool> func, object obj)
+		{
+			if (_exit)
 			{
-				return _tasks.Count(t => t.Status == TaskStatus.Running);
+				throw new SpiderExceptoin("Pool is exit.");
 			}
-		}
 
-		public int GetThreadNum()
-		{
-			return _maxDegreeOfParallelism;
-		}
-
-		private int GetAliveAndWaitingThreadCount()
-		{
-			lock (_tasks)
-			{
-				return _tasks.Count(t => t.Status == TaskStatus.Running || t.Status == TaskStatus.RanToCompletion || t.Status == TaskStatus.WaitingToRun);
-			}
-		}
-
-		public void Execute(Func<object, CancellationTokenSource, int> func, object obj)
-		{
 			// List中保留比最大线程数多5个
-			while (GetAliveAndWaitingThreadCount() >= _maxTaskCount)
+			while (_tasks.Count() > _cachedSize)
 			{
-				Thread.Sleep(50);
+				Thread.Sleep(10);
 			}
 
-			var task = _factory.StartNew(o =>
-				{
-					CancellationTokenSource cts1 = (CancellationTokenSource)o;
-					func.Invoke(obj, cts1);
-				}, _cts);
-
-			lock (_tasks)
-			{
-				// ReSharper disable once InconsistentlySynchronizedField
-				_tasks.AddLast(task);
-			}
+			Task task = _factory.StartNew((o) => { func(o); }, obj);
+			_tasks.Add(task);
 		}
 
 		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void WaitToEnd()
+		public void WaitToExit()
 		{
-			while (_tasks.Count > 0)
-			{
-				Thread.Sleep(1000);
-			}
-
-			_end = true;
-		}
-
-		public bool IsShutdown => _cts.IsCancellationRequested;
-
-		[MethodImpl(MethodImplOptions.Synchronized)]
-		public void Shutdown()
-		{
-			_cts.Cancel();
-
-			while (!_cts.IsCancellationRequested)
-			{
-				Thread.Sleep(500);
-			}
-			_end = true;
+			Task.WaitAll(_tasks.GetAll().ToArray());
+			_exit = true;
 		}
 	}
 }

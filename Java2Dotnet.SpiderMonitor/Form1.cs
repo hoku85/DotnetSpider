@@ -12,7 +12,7 @@ namespace Java2Dotnet.Spider.Monitor
 {
 	public partial class Form1 : Form
 	{
-		private RedisSchedulerManager manager;
+		private RedisSchedulerManager _manager;
 		private string _selectedIdentify = string.Empty;
 
 		public Form1()
@@ -25,16 +25,16 @@ namespace Java2Dotnet.Spider.Monitor
 			string host = ConfigurationManager.AppSettings["redishost"];
 			string pass = ConfigurationManager.AppSettings["redishostpass"];
 
-            if (!string.IsNullOrEmpty(host))
+			if (!string.IsNullOrEmpty(host))
 			{
-				manager = new RedisSchedulerManager(host, pass);
+				_manager = new RedisSchedulerManager(host, pass);
 			}
 
 			Task.Factory.StartNew(() =>
 			{
 				while (true)
 				{
-					if ((!IsDisposed || IsHandleCreated || this.components != null))
+					if ((!IsDisposed || IsHandleCreated || components != null))
 					{
 						Invoke(new Action(RefreshTask));
 					}
@@ -46,23 +46,23 @@ namespace Java2Dotnet.Spider.Monitor
 			{
 				while (true)
 				{
-					if ((!IsDisposed || IsHandleCreated || this.components != null))
+					if ((!IsDisposed || IsHandleCreated || components != null))
 					{
 						Invoke(new Action(() =>
 						{
 							if (!string.IsNullOrEmpty(_selectedIdentify))
 							{
-								SpiderStatus spiderStatus = manager.GetTaskStatus(_selectedIdentify);
+								SpiderStatus spiderStatus = _manager.GetTaskStatus(_selectedIdentify);
 
-								this.tbErrorPageCount.Text = spiderStatus.ErrorPageCount.ToString();
-								this.tbLeftRequestCount.Text = spiderStatus.LeftPageCount.ToString();
-								this.tbTotalRequestCount.Text = spiderStatus.TotalPageCount.ToString();
-								this.tbPagePerSecond.Text = spiderStatus.PagePerSecond.ToString(CultureInfo.InvariantCulture);
-								this.tbRunningProcessCount.Text = spiderStatus.AliveThreadCount.ToString();
-								this.tbProcessCount.Text = spiderStatus.ThreadCount.ToString();
-								this.tbStartTime.Text = spiderStatus.StartTime.ToString(CultureInfo.InvariantCulture);
-								this.tbEndTime.Text = spiderStatus.EndTime.ToString(CultureInfo.InvariantCulture);
-								this.tbTaskStatus.Text = spiderStatus.Status;
+								tbErrorPageCount.Text = spiderStatus.ErrorPageCount.ToString();
+								tbLeftRequestCount.Text = spiderStatus.LeftPageCount.ToString();
+								tbTotalRequestCount.Text = spiderStatus.TotalPageCount.ToString();
+								tbPagePerSecond.Text = spiderStatus.PagePerSecond.ToString(CultureInfo.InvariantCulture);
+								tbRunningProcessCount.Text = spiderStatus.AliveThreadCount.ToString();
+								tbProcessCount.Text = spiderStatus.ThreadCount.ToString();
+								tbStartTime.Text = spiderStatus.StartTime.ToString(CultureInfo.InvariantCulture);
+								tbEndTime.Text = spiderStatus.EndTime.ToString(CultureInfo.InvariantCulture);
+								tbTaskStatus.Text = spiderStatus.Status;
 							}
 							else
 							{
@@ -78,16 +78,16 @@ namespace Java2Dotnet.Spider.Monitor
 		[MethodImpl(MethodImplOptions.Synchronized)]
 		private void RefreshTask()
 		{
-			this.listBox1.Items.Clear();
-			IDictionary<string, double> taskList = manager.GetTaskList(0, 10);
+			listBox1.Items.Clear();
+			IDictionary<string, double> taskList = _manager.GetTaskList(0, 1000);
 			foreach (var task in taskList)
 			{
-				this.listBox1.Items.Add(task.Key);
+				listBox1.Items.Add(task.Key);
 			}
 
 			if (taskList.Keys.Contains(_selectedIdentify))
 			{
-				this.listBox1.SelectedItem = _selectedIdentify;
+				listBox1.SelectedItem = _selectedIdentify;
 			}
 			else
 			{
@@ -97,22 +97,22 @@ namespace Java2Dotnet.Spider.Monitor
 
 		private void SentEmptyInfo()
 		{
-			this.tbErrorPageCount.Text = "";
-			this.tbLeftRequestCount.Text = "";
-			this.tbTotalRequestCount.Text = "";
-			this.tbPagePerSecond.Text = "";
-			this.tbRunningProcessCount.Text = "";
-			this.tbProcessCount.Text = "";
-			this.tbStartTime.Text = "";
-			this.tbEndTime.Text = "";
-			this.tbTaskStatus.Text = "";
+			tbErrorPageCount.Text = "";
+			tbLeftRequestCount.Text = "";
+			tbTotalRequestCount.Text = "";
+			tbPagePerSecond.Text = "";
+			tbRunningProcessCount.Text = "";
+			tbProcessCount.Text = "";
+			tbStartTime.Text = "";
+			tbEndTime.Text = "";
+			tbTaskStatus.Text = "";
 		}
 
 		private void listBox1_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			if (this.listBox1.SelectedItem != null)
+			if (listBox1.SelectedItem != null)
 			{
-				_selectedIdentify = this.listBox1.SelectedItem.ToString();
+				_selectedIdentify = listBox1.SelectedItem.ToString();
 			}
 		}
 
@@ -130,8 +130,8 @@ namespace Java2Dotnet.Spider.Monitor
 				//SpiderStatus spiderStatus = manager.GetTaskStatus(_selectedIdentify);
 				//if (spiderStatus.Status != "Running" && spiderStatus.Status != "Init")
 				//{
-					manager.RemoveTask(_selectedIdentify);
-					RefreshTask();
+				_manager.RemoveTask(_selectedIdentify);
+				RefreshTask();
 				//}
 				//else
 				//{
@@ -142,8 +142,11 @@ namespace Java2Dotnet.Spider.Monitor
 
 		private void btnClearDb_Click(object sender, EventArgs e)
 		{
-			manager.ClearDb();
-			RefreshTask();
+			if (MessageBox.Show(this, @"确定要清空数据库吗?", @"警告", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+			{
+				_manager.ClearDb();
+				RefreshTask();
+			}
 		}
 	}
 }

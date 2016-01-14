@@ -29,6 +29,7 @@
 		private void InitializeComponent()
 		{
 			this.components = new System.ComponentModel.Container();
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
 			this.listBox1 = new System.Windows.Forms.ListBox();
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.刷新ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -102,7 +103,7 @@
 			this.tbRunningProcessCount.Name = "tbRunningProcessCount";
 			this.tbRunningProcessCount.ReadOnly = true;
 			this.tbRunningProcessCount.Size = new System.Drawing.Size(279, 26);
-			this.tbRunningProcessCount.TabIndex = 22;
+			this.tbRunningProcessCount.TabIndex = 3;
 			// 
 			// label5
 			// 
@@ -123,7 +124,7 @@
 			this.tbPagePerSecond.Name = "tbPagePerSecond";
 			this.tbPagePerSecond.ReadOnly = true;
 			this.tbPagePerSecond.Size = new System.Drawing.Size(279, 26);
-			this.tbPagePerSecond.TabIndex = 20;
+			this.tbPagePerSecond.TabIndex = 6;
 			// 
 			// label4
 			// 
@@ -145,7 +146,7 @@
 			this.tbErrorPageCount.Name = "tbErrorPageCount";
 			this.tbErrorPageCount.ReadOnly = true;
 			this.tbErrorPageCount.Size = new System.Drawing.Size(279, 26);
-			this.tbErrorPageCount.TabIndex = 18;
+			this.tbErrorPageCount.TabIndex = 5;
 			// 
 			// label3
 			// 
@@ -166,7 +167,7 @@
 			this.tbTotalRequestCount.Name = "tbTotalRequestCount";
 			this.tbTotalRequestCount.ReadOnly = true;
 			this.tbTotalRequestCount.Size = new System.Drawing.Size(279, 26);
-			this.tbTotalRequestCount.TabIndex = 16;
+			this.tbTotalRequestCount.TabIndex = 1;
 			// 
 			// label2
 			// 
@@ -188,7 +189,7 @@
 			this.tbLeftRequestCount.Name = "tbLeftRequestCount";
 			this.tbLeftRequestCount.ReadOnly = true;
 			this.tbLeftRequestCount.Size = new System.Drawing.Size(279, 26);
-			this.tbLeftRequestCount.TabIndex = 14;
+			this.tbLeftRequestCount.TabIndex = 2;
 			// 
 			// label1
 			// 
@@ -209,7 +210,7 @@
 			this.tbProcessCount.Name = "tbProcessCount";
 			this.tbProcessCount.ReadOnly = true;
 			this.tbProcessCount.Size = new System.Drawing.Size(279, 26);
-			this.tbProcessCount.TabIndex = 24;
+			this.tbProcessCount.TabIndex = 4;
 			// 
 			// label6
 			// 
@@ -230,7 +231,7 @@
 			this.tbStartTime.Name = "tbStartTime";
 			this.tbStartTime.ReadOnly = true;
 			this.tbStartTime.Size = new System.Drawing.Size(279, 26);
-			this.tbStartTime.TabIndex = 26;
+			this.tbStartTime.TabIndex = 8;
 			// 
 			// label7
 			// 
@@ -251,7 +252,7 @@
 			this.tbEndTime.Name = "tbEndTime";
 			this.tbEndTime.ReadOnly = true;
 			this.tbEndTime.Size = new System.Drawing.Size(279, 26);
-			this.tbEndTime.TabIndex = 28;
+			this.tbEndTime.TabIndex = 9;
 			// 
 			// label8
 			// 
@@ -272,7 +273,7 @@
 			this.tbTaskStatus.Name = "tbTaskStatus";
 			this.tbTaskStatus.ReadOnly = true;
 			this.tbTaskStatus.Size = new System.Drawing.Size(279, 26);
-			this.tbTaskStatus.TabIndex = 31;
+			this.tbTaskStatus.TabIndex = 7;
 			// 
 			// label9
 			// 
@@ -349,7 +350,7 @@
 			this.btnClearDb.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.btnClearDb.Name = "btnClearDb";
 			this.btnClearDb.Size = new System.Drawing.Size(108, 35);
-			this.btnClearDb.TabIndex = 32;
+			this.btnClearDb.TabIndex = 10;
 			this.btnClearDb.Text = "清空数据库";
 			this.btnClearDb.UseVisualStyleBackColor = true;
 			this.btnClearDb.Click += new System.EventHandler(this.btnClearDb_Click);
@@ -362,6 +363,7 @@
 			this.Controls.Add(this.tableLayoutPanel1);
 			this.Font = new System.Drawing.Font("Microsoft YaHei", 10.5F);
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.Name = "Form1";
 			this.Text = "Monitor";

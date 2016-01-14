@@ -31,12 +31,12 @@ namespace Java2Dotnet.Spider.Core.Pipeline
 			string filePath = BasePath + PathSeperator + spider.Identify + PathSeperator;
 			try
 			{
-				FileInfo file = PrepareFile(filePath + Encrypt.Md5Encrypt(resultItems.Request.Url) + ".html");
+				FileInfo file = PrepareFile(filePath + Encrypt.Md5Encrypt(resultItems.Request.Url.ToString()) + ".html");
 				using (StreamWriter printWriter = new StreamWriter(file.OpenWrite(), Encoding.UTF8))
 				{
 					printWriter.WriteLine("url:\t" + resultItems.Request.Url);
 
-					foreach (DictionaryEntry entry in resultItems.GetAll())
+					foreach (var entry in resultItems.Results)
 					{
 						var value = entry.Value as IList;
 						if (value != null)
@@ -60,6 +60,10 @@ namespace Java2Dotnet.Spider.Core.Pipeline
 				Logger.Warn("Write file error.", e);
 				throw;
 			}
+		}
+
+		public void Dispose()
+		{
 		}
 	}
 }

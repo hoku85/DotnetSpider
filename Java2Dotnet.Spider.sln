@@ -32,7 +32,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Spider", "Projects\Spider\S
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projects", "Projects", "{5B704B15-4868-4067-8A18-5BA5951F7B72}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleApplication3", "..\..\Visual Studio 2015\Projects\ConsoleApplication3\ConsoleApplication3.csproj", "{1BFDD76B-EB7C-4EC0-8B01-DE880913EAB4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Java2Dotnet.Spider.Redial", "Java2Dotnet.Spider.Redial\Java2Dotnet.Spider.Redial.csproj", "{D1AC9B1C-BF83-47C8-B831-D32076A0701B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Libraries", "Libraries", "{C3502492-A98B-4355-ADCC-ABEFA1F56F34}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZooKeeperNet", "Libraries\ZooKeeperNet\ZooKeeperNet.csproj", "{5C6774FB-2350-46B2-B1DF-1CCC757C7727}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ZooKeeperNet.Recipes", "Libraries\ZooKeeperNet.Recipes\ZooKeeperNet.Recipes.csproj", "{9E641549-7F84-45E4-9543-537052494EC6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -80,16 +86,25 @@ Global
 		{E2D92EFA-CBC4-49FA-ADEB-B2093E9B9C1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2D92EFA-CBC4-49FA-ADEB-B2093E9B9C1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2D92EFA-CBC4-49FA-ADEB-B2093E9B9C1D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1BFDD76B-EB7C-4EC0-8B01-DE880913EAB4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1BFDD76B-EB7C-4EC0-8B01-DE880913EAB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1BFDD76B-EB7C-4EC0-8B01-DE880913EAB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1BFDD76B-EB7C-4EC0-8B01-DE880913EAB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1AC9B1C-BF83-47C8-B831-D32076A0701B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1AC9B1C-BF83-47C8-B831-D32076A0701B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1AC9B1C-BF83-47C8-B831-D32076A0701B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1AC9B1C-BF83-47C8-B831-D32076A0701B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5C6774FB-2350-46B2-B1DF-1CCC757C7727}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5C6774FB-2350-46B2-B1DF-1CCC757C7727}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5C6774FB-2350-46B2-B1DF-1CCC757C7727}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5C6774FB-2350-46B2-B1DF-1CCC757C7727}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9E641549-7F84-45E4-9543-537052494EC6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9E641549-7F84-45E4-9543-537052494EC6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9E641549-7F84-45E4-9543-537052494EC6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9E641549-7F84-45E4-9543-537052494EC6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E2D92EFA-CBC4-49FA-ADEB-B2093E9B9C1D} = {5B704B15-4868-4067-8A18-5BA5951F7B72}
-		{1BFDD76B-EB7C-4EC0-8B01-DE880913EAB4} = {5B704B15-4868-4067-8A18-5BA5951F7B72}
+		{5C6774FB-2350-46B2-B1DF-1CCC757C7727} = {C3502492-A98B-4355-ADCC-ABEFA1F56F34}
+		{9E641549-7F84-45E4-9543-537052494EC6} = {C3502492-A98B-4355-ADCC-ABEFA1F56F34}
 	EndGlobalSection
 EndGlobal

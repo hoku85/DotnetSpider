@@ -20,15 +20,15 @@ namespace Java2Dotnet.Spider.Core.Selector
 		{
 			if (_field.ToLower() == "url")
 			{
-				return page.GetUrl().ToString();
+				return page.Url;
 			}
 
 			if (_field.ToLower() == "targeturl")
 			{
-				return page.GetTargetUrl().Value;
+				return page.TargetUrl;
 			}
 
-			return page.GetRequest().GetExtra(_field);
+			return page.Request.GetExtra(_field);
 		}
 
 		public IList<string> GetValueList(Page page)

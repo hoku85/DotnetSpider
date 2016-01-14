@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Java2Dotnet.Spider.Core;
 using Java2Dotnet.Spider.Core.Scheduler;
@@ -15,8 +16,7 @@ namespace Java2Dotnet.Spider.Extension.Test
 	public class PageExtract2MultiTypesTests
 	{
 		[ExtractBy(Value = "//*[@id='nav_menu']/a[1]")]
-		[Scheme("cnblogs")]
-		[StoredAs("yuanzi")]
+		[Scheme("cnblogs", "yuanzi")]
 		public class Yuanzi : SpiderEntity
 		{
 			[ExtractBy(Value = ".")]
@@ -25,8 +25,7 @@ namespace Java2Dotnet.Spider.Extension.Test
 		}
 
 		[ExtractBy(Value = "//*[@id='nav_menu']/a[2]")]
-		[Scheme("cnblogs")]
-		[StoredAs("jinghua")]
+		[Scheme("cnblogs", "jinghua")]
 		public class Jinghua : SpiderEntity
 		{
 			[ExtractBy(Value = ".")]
@@ -37,12 +36,12 @@ namespace Java2Dotnet.Spider.Extension.Test
 		[TestMethod]
 		public void PageExtract2MultiTypes()
 		{
-			OoSpider ooSpider = OoSpider.Create(new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, typeof(Yuanzi), typeof(Jinghua));
+			OoSpider ooSpider = OoSpider.Create(new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, new QueueDuplicateRemovedScheduler(), new CollectorPageModelPipeline(), typeof(Yuanzi), typeof(Jinghua));
 			ooSpider.SetEmptySleepTime(15000);
 			ooSpider.SetThreadNum(1);
 			ooSpider.ModelPipeline.CachedSize = 1;
-			ooSpider.SetScheduler(new QueueDuplicateRemovedScheduler());
-			var results = ooSpider.GetAll(new[] { typeof(Yuanzi), typeof(Jinghua) }, "http://www.cnblogs.com/");
+			ooSpider.AddStartUrls(new List<string> { "http://www.cnblogs.com/" });
+			var results = ((CollectorPageModelPipeline)ooSpider.Pipelines[0]).GetCollected();
 			Assert.AreEqual("园子", results[typeof(Yuanzi)][0].Name);
 			Assert.AreEqual("新闻", results[typeof(Jinghua)][0].Name);
 		}
@@ -50,25 +49,25 @@ namespace Java2Dotnet.Spider.Extension.Test
 		[TestMethod]
 		public void PageExtract2MultiTypes2()
 		{
-			OoSpider ooSpider = OoSpider.Create(new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, typeof(Yuanzi), typeof(Jinghua));
+			OoSpider ooSpider = OoSpider.Create(new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, new QueueDuplicateRemovedScheduler(), new CollectorPageModelPipeline(), typeof(Yuanzi), typeof(Jinghua));
 			ooSpider.SetEmptySleepTime(15000);
 			ooSpider.SetThreadNum(1);
 			ooSpider.ModelPipeline.CachedSize = 1;
-			ooSpider.SetScheduler(new QueueDuplicateRemovedScheduler());
-			var results = ooSpider.GetAll(new[] { typeof(Jinghua) }, "http://www.cnblogs.com/");
+			ooSpider.AddStartUrls(new List<string> { "http://www.cnblogs.com/" });
+			var collectorPageModelPipeline = (CollectorPageModelPipeline)ooSpider.Pipelines[0];
+
+			var results = collectorPageModelPipeline.GetCollected();
 			Assert.AreEqual("新闻", results[typeof(Jinghua)][0].Name);
 		}
 
 		[TestMethod]
 		public void PageExtract2MultiTypes3()
 		{
-			OoSpider ooSpider = OoSpider.Create(new Site { SleepTime = 1000, Encoding = Encoding.UTF8 },
-				new PageModelToDbPipeline(), typeof(Yuanzi), typeof(Jinghua));
+			OoSpider ooSpider = OoSpider.Create(new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, new QueueDuplicateRemovedScheduler(), new DatabasePipeline(), typeof(Yuanzi), typeof(Jinghua));
 			ooSpider.SetEmptySleepTime(15000);
 			ooSpider.SetThreadNum(1);
 			ooSpider.ModelPipeline.CachedSize = 1;
-			ooSpider.SetScheduler(new QueueDuplicateRemovedScheduler());
-			ooSpider.AddUrl("http://www.cnblogs.com/");
+			ooSpider.AddStartUrl("http://www.cnblogs.com/");
 			ooSpider.Run();
 			DataRepository dataRepository = new DataRepository(typeof(Jinghua));
 			Assert.AreEqual("新闻", dataRepository.GetWhere("id>0").ToList()[0].Name);

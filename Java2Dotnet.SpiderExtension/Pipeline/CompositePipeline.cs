@@ -32,5 +32,9 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 			}
 			return this;
 		}
+
+		public void Dispose()
+		{
+		}
 	}
 }

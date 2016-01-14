@@ -4,6 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 using Java2Dotnet.Spider.Extension.DbSupport.Dapper.Attributes;
+using Java2Dotnet.Spider.Lib;
 
 namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 {
@@ -26,15 +27,16 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 		{
 			var entityType = type;
 
-			var aliasAttribute = entityType.GetCustomAttribute<StoredAs>();
 			var schemeAttribute = entityType.GetCustomAttribute<Scheme>();
-			TableName = aliasAttribute != null ? aliasAttribute.Value : entityType.Name;
-			Scheme = schemeAttribute != null ? schemeAttribute.Value : "";
+			var tmpTableName = schemeAttribute != null ? (string.IsNullOrEmpty(schemeAttribute.TableName) ? entityType.Name : schemeAttribute.TableName) : entityType.Name;
 
+			Scheme = schemeAttribute != null ? schemeAttribute.Value : "";
+			var suffixType = schemeAttribute?.Suffix ?? SchemeSuffix.Empty;
+			TableName = string.IsNullOrEmpty(Scheme) ? $"`{tmpTableName}{GetSuffix(suffixType)}`" : $"`{Scheme}`.`{tmpTableName}{GetSuffix(suffixType)}`";
 			//Load all the "primitive" entity properties
 			IEnumerable<PropertyInfo> props = entityType.GetProperties().Where(p => p.PropertyType.IsValueType ||
-																					p.PropertyType.Name.Equals("String", StringComparison.InvariantCultureIgnoreCase) ||
-																					p.PropertyType.Name.Equals("Byte[]", StringComparison.InvariantCultureIgnoreCase));
+																				   p.PropertyType.Name.Equals("String", StringComparison.InvariantCultureIgnoreCase) ||
+																				   p.PropertyType.Name.Equals("Byte[]", StringComparison.InvariantCultureIgnoreCase));
 
 			//Filter the non stored properties
 			var propertyInfos = props as IList<PropertyInfo> ?? props.ToList();
@@ -64,6 +66,23 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 						LogicalDeleteValue = Convert.ChangeType(enumValue, Enum.GetUnderlyingType(statusPropertyType));
 				}
 			}
+		}
+
+		private string GetSuffix(SchemeSuffix suffixType)
+		{
+			switch (suffixType)
+			{
+				case SchemeSuffix.Empty:
+					return "";
+				case SchemeSuffix.FirstDayOfMonth:
+					return "_" + DateTimeUtil.FirstDayofThisMonth.ToString("yyyy_MM_dd");
+				case SchemeSuffix.ThisMonday:
+					return "_" + DateTimeUtil.FirstDayofThisWeek.ToString("yyyy_MM_dd");
+				case SchemeSuffix.Today:
+					return "_" + DateTime.Now.ToString("yyyy_MM_dd");
+			}
+
+			return "";
 		}
 
 		#endregion
@@ -137,7 +156,7 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 			//  PRIMARY KEY (`id`)
 			//) ENGINE=InnoDB AUTO_INCREMENT=127 DEFAULT CHARSET=utf8;
 
-			StringBuilder builder = new StringBuilder($"CREATE TABLE IF NOT EXISTS `{Scheme}`.`{TableName}` (");
+			StringBuilder builder = new StringBuilder($"CREATE TABLE IF NOT EXISTS  {TableName}  (");
 
 			string columNames = string.Join(", ", properties.Select(p =>
 				$"`{p.ColumnName}` {p.ValueType} {(p.PrimaryKey ? "AUTO_INCREMENT" : "")}"));
@@ -171,15 +190,14 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 			string values = string.Join(", ", properties.Select(p => $"@{p.Name}"));
 
 			var sqlBuilder = new StringBuilder();
-			sqlBuilder.AppendFormat("INSERT IGNORE INTO `{0}`.`{1}` {2} {3};",
-									Scheme,
+			sqlBuilder.AppendFormat("INSERT IGNORE INTO {0} {1} {2};",
 									TableName,
 									string.IsNullOrEmpty(columNames) ? string.Empty : $"({columNames})",
 									string.IsNullOrEmpty(values) ? string.Empty : $" VALUES ({values})");
 
 			if (IsIdentity && !bulkInsert)
 			{
-				string query = $"SELECT max(`{IdentityProperty.ColumnName}`) as Id FROM `{Scheme}`.`{TableName}`;";
+				string query = $"SELECT max(`{IdentityProperty.ColumnName}`) as Id FROM {TableName};";
 				sqlBuilder.Append(query);
 			}
 
@@ -195,8 +213,7 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 			var properties = BaseProperties.Where(p => !KeyProperties.Any(k => k.Name.Equals(p.Name, StringComparison.InvariantCultureIgnoreCase)));
 
 			var sqlBuilder = new StringBuilder();
-			sqlBuilder.AppendFormat("UPDATE `{0}`.`{1}` SET {2} WHERE {3}",
-									Scheme,
+			sqlBuilder.AppendFormat("UPDATE {0} SET {1} WHERE {2}",
 									TableName,
 									string.Join(", ", properties.Select(p => $"`{p.ColumnName}` = @{p.Name}")),
 									string.Join(" AND ", KeyProperties.Select(p => $"`{p.ColumnName}` = @{p.Name}")));
@@ -225,9 +242,8 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 			};
 
 			var sqlBuilder = new StringBuilder();
-			sqlBuilder.AppendFormat("SELECT {0} FROM `{1}`.`{2}` ",
+			sqlBuilder.AppendFormat("SELECT {0} FROM {1} ",
 									string.Join(", ", BaseProperties.Select(projectionFunction)),
-									Scheme,
 									TableName);
 			bool containsFilter = false;
 			var s = filters as string;
@@ -254,7 +270,7 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 			//Evaluates if this repository implements logical delete
 			if (LogicalDelete)
 			{
-				sqlBuilder.AppendFormat(containsFilter ? " AND `{0}` != {1}" : " WHERE `{0}` != {1}",StatusProperty.Name,LogicalDeleteValue);
+				sqlBuilder.AppendFormat(containsFilter ? " AND `{0}` != {1}" : " WHERE `{0}` != {1}", StatusProperty.Name, LogicalDeleteValue);
 			}
 
 			return sqlBuilder.ToString();
@@ -270,14 +286,12 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 
 			if (!LogicalDelete)
 			{
-				sqlBuilder.AppendFormat("DELETE FROM `{0}`.`{1}` WHERE {2}",
-										Scheme,
+				sqlBuilder.AppendFormat("DELETE FROM {0} WHERE {1}",
 										TableName,
 										string.Join(" AND ", KeyProperties.Select(p => $"`{p.ColumnName}` = @{p.Name}")));
 			}
 			else
-				sqlBuilder.AppendFormat("UPDATE `{0}`.`{1}` SET {2} WHERE {3}",
-									Scheme,
+				sqlBuilder.AppendFormat("UPDATE {0} SET {1} WHERE {2}",
 									TableName,
 					$"`{TableName}`.`{StatusProperty.ColumnName}` = {LogicalDeleteValue}",
 									string.Join(" AND ", KeyProperties.Select(p => $"`{p.ColumnName}` = @{p.Name}")));
@@ -313,8 +327,7 @@ namespace Java2Dotnet.Spider.Extension.DbSupport.Dapper
 		public string GetDeleteWhere(object filters)
 		{
 			var sqlBuilder = new StringBuilder();
-			sqlBuilder.AppendFormat("DELETE FROM `{0}`.`{1}` ",
-									Scheme,
+			sqlBuilder.AppendFormat("DELETE FROM {0} ",
 									TableName);
 			bool containsFilter = false;
 			var s = filters as string;

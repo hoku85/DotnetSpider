@@ -3,9 +3,8 @@ using Java2Dotnet.Spider.Extension.Model.Attribute;
 
 namespace Java2Dotnet.Spider.Samples
 {
-	[ExtractBy(Value = "//*[@id=\"listofficial\"]/div[1]/div", Multi = true)]
-	[Scheme("youku")]
-	[StoredAs("video3")]
+	[ExtractBy(Value = "//*[@id=\"listofficial\"]/div[1]/div")]
+	[Scheme("youku", "video3")]
 	public class VideoEntity
 	{
 		[KeyProperty]

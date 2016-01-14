@@ -7,16 +7,16 @@ using Java2Dotnet.Spider.Extension.Pipeline;
 
 namespace Java2Dotnet.Spider.Samples.Model
 {
-	[TargetUrl(Value = new[] { "http://my.oschina.net/flashsword/blog" })]
+	[TargetUrl(new[] { "http://my.oschina.net/flashsword/blog" })]
 	public class OschinaBlog
 	{
 		[ExtractBy(Value = "//title/text()")]
 		public string Title { get; set; }
 
-		[ExtractBy(Value = "div.BlogContent", Type = ExtractBy.ExtracType.Css)]
+		[ExtractBy(Value = "div.BlogContent", Type = ExtractType.Css)]
 		public string Content { get; set; }
 
-		[ExtractBy(Value = "//div[@class='BlogTags']/a/text()", Multi = true)]
+		[ExtractBy(Value = "//div[@class='BlogTags']/a/text()")]
 		public HashSet<string> Tags { get; set; }
 
 		//[ExtractBy(Value = "//div[@class='BlogStat']/regex('\\d+-\\d+-\\d+\\s+\\d+:\\d+')")]
@@ -32,12 +32,16 @@ namespace Java2Dotnet.Spider.Samples.Model
 			site.SleepTime = 0;
 			site.RetryTimes = 3;
 
-			OoSpider.Create(site, new PageModelToDbPipeline(),typeof(OschinaBlog)).SetThreadNum(1).Run();
+			OoSpider.Create(site, new DatabasePipeline(),typeof(OschinaBlog)).SetThreadNum(1).Run();
 		}
 
 		private class TestPageModelPipeline : IPageModelPipeline
 		{
 			public void Process(Dictionary<Type, List<dynamic>> data, ISpider spider)
+			{
+			}
+
+			public void Dispose()
 			{
 			}
 		}

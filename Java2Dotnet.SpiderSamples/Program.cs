@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Java2Dotnet.Spider.Extension.DbSupport;
 using Java2Dotnet.Spider.Samples.Model;
-using Java2Dotnet.Spider.Samples.Samples;
 
 namespace Java2Dotnet.Spider.Samples
 {

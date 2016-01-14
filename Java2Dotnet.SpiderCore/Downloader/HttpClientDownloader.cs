@@ -9,8 +9,8 @@ using System.Text;
 using System.Web;
 using HtmlAgilityPack;
 using Java2Dotnet.Spider.Core.Proxy;
-using Java2Dotnet.Spider.Core.Selector;
 using Java2Dotnet.Spider.Core.Utils;
+using Java2Dotnet.Spider.Redial;
 
 namespace Java2Dotnet.Spider.Core.Downloader
 {
@@ -20,6 +20,8 @@ namespace Java2Dotnet.Spider.Core.Downloader
 	[Synchronization]
 	public class HttpClientDownloader : BaseDownloader
 	{
+		//private static AutomicLong _exceptionCount = new AutomicLong(0);
+
 		public override Page Download(Request request, ISpider spider)
 		{
 			if (spider.Site == null)
@@ -31,7 +33,7 @@ namespace Java2Dotnet.Spider.Core.Downloader
 
 			ICollection<int> acceptStatCode = site.AcceptStatCode;
 			var charset = site.Encoding;
-			var headers = site.GetHeaders();
+			var headers = site.Headers;
 
 			//Logger.InfoFormat("Downloading page {0}", request.Url);
 
@@ -40,35 +42,40 @@ namespace Java2Dotnet.Spider.Core.Downloader
 			HttpWebResponse response = null;
 			try
 			{
-				HttpWebRequest httpWebRequest = GetHttpWebRequest(request, site, headers);
-				response = (HttpWebResponse)httpWebRequest.GetResponse();
+				var httpWebRequest = GetHttpWebRequest(request, site, headers);
+
+				response = RedialManagerConfig.RedialManager.AtomicExecutor.Execute("downloader-download", h =>
+				{
+					HttpWebRequest tmpHttpWebRequest = h as HttpWebRequest;
+					return (HttpWebResponse)tmpHttpWebRequest?.GetResponse();
+				}, httpWebRequest);
+
 				statusCode = (int)response.StatusCode;
 				request.PutExtra(Request.StatusCode, statusCode);
 				if (StatusAccept(acceptStatCode, statusCode))
 				{
 					Page page = HandleResponse(request, charset, response, statusCode);
 
-					//customer verify
-					if (DownloadVerifyEvent != null)
-					{
-						string msg = "";
-						if (!DownloadVerifyEvent(page, ref msg))
-						{
-							throw new SpiderExceptoin(msg);
-						}
-					}
+					//page.SetRawText(File.ReadAllText(@"C:\Users\Lewis\Desktop\taobao.html"));
+
+					// 这里只要是遇上登录的, 则在拨号成功之后, 全部抛异常在Spider中加入Scheduler调度
+					// 因此如果使用多线程遇上多个Warning Custom Validate Failed不需要紧张, 可以考虑用自定义Exception分开
+					ValidatePage(page);
 
 					// 结束后要置空, 这个值存到Redis会导置无限循环跑单个任务
 					request.PutExtra(Request.CycleTriedTimes, null);
 
 					httpWebRequest.ServicePoint.ConnectionLimit = int.MaxValue;
-					OnSuccess(request);
+
 					return page;
 				}
 				else
 				{
 					throw new SpiderExceptoin("Download failed.");
 				}
+
+				//正常结果在上面已经Return了, 到此处必然是下载失败的值.
+				//throw new SpiderExceptoin("Download failed.");
 			}
 			finally
 			{
@@ -93,21 +100,18 @@ namespace Java2Dotnet.Spider.Core.Downloader
 			return acceptStatCode.Contains(statusCode);
 		}
 
-		private HttpWebRequest GeneratorCookie(HttpWebRequest httpWebRequest, Site site)
+		private HttpWebRequest GeneratorCookie(HttpWebRequest httpWebRequest, Request request, Site site)
 		{
-			CookieContainer cookie = new CookieContainer();
-			foreach (var entry in site.GetAllCookies())
-			{
-				string domain = entry.Key;
-				var cookies = entry.Value;
-				Uri uri = new Uri(domain);
+			string domain = request.Url.Host;
 
-				foreach (var keypair in cookies)
-				{
-					cookie.Add(uri, new Cookie(keypair.Key, keypair.Value));
-				}
+			CookieContainer cookieContainer = new CookieContainer();
+
+			foreach (var cookie in site.AllCookies)
+			{
+				cookieContainer.Add(new Cookie(cookie.Key, cookie.Value));
 			}
-			httpWebRequest.CookieContainer = cookie;
+			httpWebRequest.CookieContainer = cookieContainer;
+
 			return httpWebRequest;
 		}
 
@@ -117,8 +121,8 @@ namespace Java2Dotnet.Spider.Core.Downloader
 
 			HttpWebRequest httpWebRequest = SelectRequestMethod(request);
 
-			httpWebRequest.UserAgent = site.UserAgent ??
-									   "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0Mozilla/5.0 (Windows NT 10.0; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0";
+			httpWebRequest.UserAgent = site.UserAgent ?? "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0Mozilla/5.0 (Windows NT 10.0; WOW64; rv:39.0) Gecko/20100101 Firefox/39.0";
+			httpWebRequest.Accept = site.Accept ?? "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
 
 			if (site.IsUseGzip)
 			{
@@ -138,7 +142,7 @@ namespace Java2Dotnet.Spider.Core.Downloader
 			}
 
 			// cookie
-			httpWebRequest = GeneratorCookie(httpWebRequest, site);
+			httpWebRequest = GeneratorCookie(httpWebRequest, request, site);
 
 			//check:
 			httpWebRequest.Timeout = site.Timeout;
@@ -146,11 +150,16 @@ namespace Java2Dotnet.Spider.Core.Downloader
 			httpWebRequest.ReadWriteTimeout = site.Timeout;
 			httpWebRequest.AllowAutoRedirect = true;
 
-			if (site.GetHttpProxyPool().Enable)
+			if (site.HttpProxyPoolEnable)
 			{
 				HttpHost host = site.GetHttpProxyFromPool();
 				httpWebRequest.Proxy = new WebProxy(host.Host, host.Port);
 				request.PutExtra(Request.Proxy, host);
+			}
+			else
+			{
+				// 避开Fiddler之类的代理
+				httpWebRequest.Proxy = null;
 			}
 
 			return httpWebRequest;
@@ -202,10 +211,10 @@ namespace Java2Dotnet.Spider.Core.Downloader
 			}
 			content = HttpUtility.UrlDecode(HttpUtility.HtmlDecode(content), charset);
 			Page page = new Page(request);
-			page.SetRawText(content);
-			page.SetTargetUrl(new PlainText(response.ResponseUri.ToString()));
-			page.SetUrl(new PlainText(request.Url));
-			page.SetStatusCode(statusCode);
+			page.RawText = content;
+			page.TargetUrl = response.ResponseUri.ToString();
+			page.Url = request.Url.ToString();
+			page.StatusCode = statusCode;
 			return page;
 		}
 

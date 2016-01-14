@@ -2,30 +2,26 @@
 using System.Collections.Generic;
 using System.Text;
 using Java2Dotnet.Spider.Core;
-using Java2Dotnet.Spider.Core.Pipeline;
 using Java2Dotnet.Spider.Core.Scheduler;
 using Java2Dotnet.Spider.Core.Utils;
 using Java2Dotnet.Spider.Extension.DbSupport.Dapper.Attributes;
 using Java2Dotnet.Spider.Extension.Model;
 using Java2Dotnet.Spider.Extension.Model.Attribute;
 using Java2Dotnet.Spider.Extension.Pipeline;
-using Java2Dotnet.Spider.Extension.Scheduler;
 
 namespace Java2Dotnet.Spider.Samples.Samples
 {
-	[ExtractBy(Value = "//*[@id=\"tab_top50\"]/div[1]/ul/li", Multi = true, Count = 1)]
-	[Scheme("Test")]
-	[StoredAs("SingleTest")]
+	[ExtractBy(Value = "//*[@id=\"tab_top50\"]/div[1]/ul/li", Count = 1)]
+	[Scheme("Test", "SingleTest")]
 	public class SingleSample
 	{
 		public static void RunTask()
 		{
 			OoSpider ooSpider = OoSpider.Create("aiqiyi_movies_" + DateTime.Now.ToLocalTime(),
-				new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, new ConsolePageModelPipeline(), typeof(walter));
+				new Site { SleepTime = 1000, Encoding = Encoding.UTF8 }, new QueueDuplicateRemovedScheduler(), new ConsolePageModelPipeline(), typeof(SingleSample));
 			ooSpider.SetEmptySleepTime(15000);
 			ooSpider.SetThreadNum(1);
-			ooSpider.SetScheduler(new QueueDuplicateRemovedScheduler());
-			ooSpider.AddUrl("http://top.iqiyi.com/dianshiju.html#");
+			ooSpider.AddStartUrl("http://top.iqiyi.com/dianshiju.html#");
 			ooSpider.Run();
 		}
 
@@ -41,7 +37,7 @@ namespace Java2Dotnet.Spider.Samples.Samples
 		[ExtractBy(Value = "/li/a[1]/@href")]
 		public string Url { get; set; }
 
-		[ExtractBy(Value = "/li/span[1]/a", Multi = true)]
+		[ExtractBy(Value = "/li/span[1]/a")]
 		public List<string> Label_1 { get; set; }
 
 		[StoredAs("tag", StoredAs.ValueType.Varchar, false, 500)]

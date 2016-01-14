@@ -1,5 +1,3 @@
-using System.Runtime.CompilerServices;
-
 namespace Java2Dotnet.Spider.Core.Scheduler 
 {
 	/// <summary>
@@ -17,7 +15,6 @@ namespace Java2Dotnet.Spider.Core.Scheduler
 		/// </summary>
 		/// <param name="request"></param>
 		/// <param name="spider"></param>
-		[MethodImpl(MethodImplOptions.Synchronized)]
 		void Push(Request request, ISpider spider);
 
 		/// <summary>
@@ -25,7 +22,6 @@ namespace Java2Dotnet.Spider.Core.Scheduler
 		/// </summary>
 		/// <param name="spider"></param>
 		/// <returns></returns>
-		[MethodImpl(MethodImplOptions.Synchronized)]
 		Request Poll(ISpider spider);
 	}
 }

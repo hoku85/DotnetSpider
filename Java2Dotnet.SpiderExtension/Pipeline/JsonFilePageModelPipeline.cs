@@ -4,7 +4,6 @@ using System.IO;
 using System.Text;
 using Java2Dotnet.Spider.Core;
 using Java2Dotnet.Spider.Core.Utils;
-using Java2Dotnet.Spider.Extension.Model;
 using Newtonsoft.Json;
 
 namespace Java2Dotnet.Spider.Extension.Pipeline
@@ -53,6 +52,10 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 					throw;
 				}
 			}
+		}
+
+		public void Dispose()
+		{
 		}
 	}
 }

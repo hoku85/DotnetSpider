@@ -10,10 +10,14 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 	{
 		private readonly CollectorPageModelPipeline _collectorPipeline = new CollectorPageModelPipeline();
 		private readonly Type _type;
+		private readonly Type _actualType;
 
 		public PageModelCollectorPipeline(Type type)
 		{
 			_type = type;
+
+			bool isGeneric = typeof(IEnumerable).IsAssignableFrom(type);
+			_actualType = isGeneric ? type.GenericTypeArguments[0] : type;
 		}
 
 		public ICollection GetCollected()
@@ -31,34 +35,39 @@ namespace Java2Dotnet.Spider.Extension.Pipeline
 
 			Dictionary<Type, List<dynamic>> resultDictionary = new Dictionary<Type, List<dynamic>>();
 
-			dynamic data = resultItems.Get(_type.FullName);
+			dynamic data = resultItems.GetResultItem(_actualType.FullName);
 
 			if (typeof(IEnumerable).IsAssignableFrom(_type))
 			{
-				if (resultDictionary.ContainsKey(_type))
+				if (resultDictionary.ContainsKey(_actualType))
 				{
-					resultDictionary[_type].AddRange(data);
+					resultDictionary[_actualType].AddRange(data);
 				}
 				else
 				{
 					List<dynamic> list = new List<dynamic>();
 					list.AddRange(data);
-					resultDictionary.Add(_type, list);
+					resultDictionary.Add(_actualType, list);
 				}
 			}
 			else
 			{
-				if (resultDictionary.ContainsKey(_type))
+				if (resultDictionary.ContainsKey(_actualType))
 				{
-					resultDictionary[_type].Add(data);
+					resultDictionary[_actualType].Add(data);
 				}
 				else
 				{
-					resultDictionary.Add(_type, new List<dynamic> { data });
+					resultDictionary.Add(_actualType, new List<dynamic> { data });
 				}
 			}
 
 			_collectorPipeline.Process(resultDictionary, spider);
+		}
+
+		public void Dispose()
+		{
+			_collectorPipeline.Dispose();
 		}
 	}
 }

@@ -5,10 +5,6 @@ using Java2Dotnet.Spider.Core.Utils;
 
 namespace Java2Dotnet.Spider.Extension.Monitor
 {
-	/**
-	 * @author code4crafer@gmail.com
-	 * @since 0.5.0
-	 */
 	[Experimental]
 	public class SpiderMonitor
 	{
@@ -26,14 +22,13 @@ namespace Java2Dotnet.Spider.Extension.Monitor
 			foreach (Core.Spider spider in spiders)
 			{
 				MonitorSpiderListener monitorSpiderListener = new MonitorSpiderListener();
-				if (spider.GetSpiderListeners() == null)
+				if (spider.SpiderListeners == null)
 				{
-					List<ISpiderListener> spiderListeners = new List<ISpiderListener> { monitorSpiderListener };
-					spider.SetSpiderListeners(spiderListeners);
+					spider.SpiderListeners = new List<ISpiderListener> { monitorSpiderListener };
 				}
 				else
 				{
-					spider.GetSpiderListeners().Add(monitorSpiderListener);
+					spider.SpiderListeners.Add(monitorSpiderListener);
 				}
 				ISpiderStatus spiderStatus = GetSpiderStatus(spider, monitorSpiderListener);
 				Register(spider, spiderStatus, monitorSpiderListener);
@@ -65,7 +60,7 @@ namespace Java2Dotnet.Spider.Extension.Monitor
 				form1.ShowDialog();
 			}
 
-			if (spider.SaveStatusInRedis)
+			if (spider.SaveStatusToRedis)
 			{
 				RedisStatusUpdater statusUpdater = new RedisStatusUpdater(spider, spiderStatus);
 				monitorSpiderListener.ClosingEvent += statusUpdater.UpdateStatus;
@@ -90,7 +85,7 @@ namespace Java2Dotnet.Spider.Extension.Monitor
 
 			public void OnError(Request request)
 			{
-				_errorUrls.Add(request.Url);
+				_errorUrls.Add(request.Url.ToString());
 				_errorCount.Inc();
 			}
 

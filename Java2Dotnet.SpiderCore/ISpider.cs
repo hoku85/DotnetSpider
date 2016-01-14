@@ -1,6 +1,3 @@
-using System;
-using System.Threading;
-
 namespace Java2Dotnet.Spider.Core
 {
 	/// <summary>
@@ -18,7 +15,7 @@ namespace Java2Dotnet.Spider.Core
 		/// </summary>
 		Site Site { get; }
 
-		void Start();
+		//void Start();
 
 		void Run();
 

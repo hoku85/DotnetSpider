@@ -1,21 +1,17 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Java2Dotnet.Spider.Core;
+using Java2Dotnet.Spider.Extension.Monitor;
 using Java2Dotnet.Spider.Extension.Scheduler;
-using ServiceStack.Redis;
+using Java2Dotnet.Spider.Extension.Utils;
 
 namespace Java2Dotnet.Spider.Extension
 {
 	public abstract class AbastractRedisSpider : IRedisSpider
 	{
-		private RedisManagerPool _pool;
+		private SafeRedisManagerPool _pool;
 		private RedisScheduler _scheduler;
 
-		protected RedisManagerPool Pool => _pool ?? (_pool = new RedisManagerPool(new List<string> { RedisHost }, new RedisPoolConfig { MaxPoolSize = 100 }));
+		protected SafeRedisManagerPool Pool => _pool ?? (_pool = new SafeRedisManagerPool(RedisHost, RedisPassword));
 
 		protected RedisScheduler Scheduler
 		{
@@ -42,42 +38,56 @@ namespace Java2Dotnet.Spider.Extension
 
 		private void Prepare()
 		{
-			using (var redis = Pool.GetClient())
+			using (var redis = Pool.GetSafeGetClient())
 			{
 				IDisposable locker = null;
 				try
 				{
 					string key = "locker-" + Name;
 					// 取得锁
-					redis.Password = RedisPassword;
-					locker = redis.AcquireLock(key);
+					Console.WriteLine("Lock: " + key);
+					locker = redis.AcquireLock(key, TimeSpan.FromMinutes(10));
 
 					var lockerValue = redis.GetValue(Name);
-					bool needInitStartRequest = lockerValue != "finished";
-					Site site = PrepareSite(needInitStartRequest);
+					bool needInitStartRequest = lockerValue != "init finished";
+
+					Console.WriteLine("Prepare site with paramete: " + needInitStartRequest);
+
 					if (needInitStartRequest)
 					{
-						redis.SetValue(Name, "finished");
+						PrepareSite();
 					}
-					_spider = ExecuteSpider(site);
+
+					Console.WriteLine("Init spider with site.");
+					_spider = InitSpider(Site);
+					_spider.SaveStatusToRedis = true;
+					SpiderMonitor.Instance.Register(_spider);
 					_spider.InitComponent();
+
+					if (needInitStartRequest)
+					{
+						redis.SetValue(Name, "init finished");
+					}
 				}
-				catch (Exception)
+				catch (Exception e)
 				{
 					//测试是否操时
 				}
 				finally
 				{
+					Console.WriteLine("Release lock.");
 					locker?.Dispose();
 				}
 			}
 		}
 
-		protected abstract Site PrepareSite(bool needInitStartRequest);
+		protected abstract void PrepareSite();
 
-		protected abstract Core.Spider ExecuteSpider(Site site);
-		public abstract string RedisHost { get; }
-		public abstract string RedisPassword { get; }
+		protected abstract Site Site { get; }
+
+		protected abstract Core.Spider InitSpider(Site site);
+		public virtual string RedisHost { get; } = "localhost";
+		public virtual string RedisPassword { get; } = null;
 		public abstract string Name { get; }
 	}
 }

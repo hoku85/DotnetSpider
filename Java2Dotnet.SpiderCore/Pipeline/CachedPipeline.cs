@@ -1,48 +1,58 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using log4net;
 
 namespace Java2Dotnet.Spider.Core.Pipeline
 {
-	public delegate void FlushCachedPipeline(ISpider spider);
-
+	/// <summary>
+	/// 
+	/// </summary>
 	public abstract class CachedPipeline : IPipeline
 	{
-		protected static readonly ILog Logger = LogManager.GetLogger(typeof(CachedPipeline));
+		private readonly ConcurrentDictionary<ISpider, List<ResultItems>> _cached = new ConcurrentDictionary<ISpider, List<ResultItems>>();
 
-		private readonly List<ResultItems> _cached = new List<ResultItems>();
+		protected static readonly ILog Logger = LogManager.GetLogger(typeof(CachedPipeline));
 
 		public int CachedSize { get; set; } = 1;
 
+		protected abstract void Process(List<ResultItems> resultItemsList, ISpider spider);
+
 		public void Process(ResultItems resultItems, ISpider spider)
 		{
-			_cached.Add(resultItems);
-
-			if (_cached.Count >= CachedSize)
+			if (_cached.ContainsKey(spider))
 			{
-				ResultItems[] result;
-				lock (this)
+				_cached[spider].Add(resultItems);
+			}
+			else
+			{
+				while (!_cached.TryAdd(spider, new List<ResultItems>() { resultItems }))
 				{
-					result = new ResultItems[_cached.Count];
-					_cached.CopyTo(result);
-					_cached.Clear();
 				}
+			}
+
+			if (_cached[spider].Count >= CachedSize)
+			{
+				List<ResultItems> result = new List<ResultItems>();
+
+				result.AddRange(_cached[spider]);
+				_cached.Clear();
 
 				// 做成异步
 				Process(result.ToList(), spider);
 			}
 		}
 
-		public void Flush(ISpider spider)
+		public void Dispose()
 		{
-			if (_cached.Count > 0)
+			foreach (var entry in _cached)
 			{
-				Process(_cached, spider);
-				_cached.Clear();
+				if (entry.Value.Count > 0)
+				{
+					Process(entry.Value, entry.Key);
+					_cached.Clear();
+				}
 			}
 		}
-
-		protected abstract void Process(List<ResultItems> resultItemsList, ISpider spider);
 	}
 }
